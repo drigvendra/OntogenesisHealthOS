@@ -18,6 +18,7 @@ internal sealed class PermissionEvaluator(IRequestContext context, PermissionCat
 {
     private HashSet<string>? _tenantPermissions;
     private bool? _isOperator;
+    private bool? _breakGlass;
 
     public async Task<PermissionDecision> EvaluateAsync(ClaimsPrincipal user, string permission, CancellationToken cancellationToken)
     {
@@ -66,6 +67,19 @@ internal sealed class PermissionEvaluator(IRequestContext context, PermissionCat
 
         if (!_tenantPermissions.Contains(permission))
         {
+            // Break-glass: approved, unexpired, MFA-backed, and limited to read permissions.
+            if (permission.EndsWith(".read", StringComparison.Ordinal) && mfa)
+            {
+                var now = DateTimeOffset.UtcNow;
+                var tenantId = context.TenantId.Value;
+                _breakGlass ??= await db.BreakGlassGrants.AsNoTracking().AnyAsync(
+                    g => g.UserId == userId && g.TenantId == tenantId && g.ApprovedBy != null && g.ExpiresAt > now, cancellationToken).ConfigureAwait(false);
+                if (_breakGlass.Value)
+                {
+                    return PermissionDecision.Allow("break-glass read access");
+                }
+            }
+
             return PermissionDecision.Deny("permission not granted in tenant");
         }
 

@@ -12,7 +12,9 @@
     { "code": "core.identity.users.manage", "description": "Add or suspend tenant members", "requiresMfa": true },
     { "code": "core.identity.roles.manage", "description": "Create roles and assign them to members", "requiresMfa": true },
     { "code": "core.identity.tenant-admins.manage", "description": "Appoint tenant administrators", "scope": "platform" },
-    { "code": "core.identity.operators.read", "description": "View platform operators", "scope": "platform" }
+    { "code": "core.identity.operators.read", "description": "View platform operators", "scope": "platform" },
+    { "code": "core.identity.break-glass.request", "description": "Request time-boxed read-only access to a tenant", "scope": "platform" },
+    { "code": "core.identity.break-glass.approve", "description": "Approve another operator's break-glass request", "scope": "platform" }
   ],
   "contracts": {
     "provides": {

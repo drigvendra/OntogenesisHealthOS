@@ -54,6 +54,7 @@ public sealed partial class CoreIdentityModule : HealthOsModule
         MapSelfEndpoints(endpoints.MapGroup("/api/core/identity").WithTags("core.identity"));
         MapTenantAdminEndpoints(endpoints.MapGroup("/api/core/identity").WithTags("core.identity"));
         MapPlatformEndpoints(endpoints.MapGroup("/api/platform").WithTags("platform.identity"));
+        BreakGlassEndpoints.Map(endpoints);
     }
 
     private static void MapSelfEndpoints(RouteGroupBuilder g)
@@ -81,7 +82,7 @@ public sealed partial class CoreIdentityModule : HealthOsModule
         g.MapPut("/session/tenant", async (SelectTenantRequest req, IRequestContext ctx, IAccessControl access, ITenantDirectory tenants, ISessionManager session, CancellationToken ct) =>
             {
                 if (ctx.UserId is not { } uid ||
-                    !await access.IsActiveMemberAsync(uid, req.TenantId, ct) ||
+                    !await access.HasTenantAccessAsync(uid, req.TenantId, ct) ||
                     await tenants.FindAsync(req.TenantId, ct) is not { IsActive: true })
                 {
                     return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "You are not an active member of this tenant.");

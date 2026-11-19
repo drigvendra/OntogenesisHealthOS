@@ -33,5 +33,8 @@ public interface IAccessControl
 
     Task<bool> IsActiveMemberAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken);
 
+    /// <summary>Active membership, or an approved and unexpired break-glass grant (read-only access).</summary>
+    Task<bool> HasTenantAccessAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken);
+
     Task<bool> IsPlatformOperatorAsync(Guid userId, CancellationToken cancellationToken);
 }

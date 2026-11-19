@@ -35,7 +35,7 @@ public sealed class DatabaseIsolationTests(PostgresFixture db)
         await db.MigrateAsync();
 
         await using var c = await OpenAsync(db.MigratorConnectionString);
-        Assert.Equal(2L, await PostgresFixture.Scalar(c, "SELECT count(*) FROM core_identity.schema_migrations"));
+        Assert.Equal(3L, await PostgresFixture.Scalar(c, "SELECT count(*) FROM core_identity.schema_migrations"));
         Assert.Equal(1L, await PostgresFixture.Scalar(c, "SELECT count(*) FROM core_tenancy.schema_migrations"));
     }
 

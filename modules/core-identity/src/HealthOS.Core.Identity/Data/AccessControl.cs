@@ -37,6 +37,17 @@ internal sealed class AccessControl(IdentityDbContext db, PermissionCatalog cata
         db.Memberships.AsNoTracking().AnyAsync(
             m => m.UserId == userId && m.TenantId == tenantId && m.Status == MembershipStatus.Active, cancellationToken);
 
+    public async Task<bool> HasTenantAccessAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken) =>
+        await IsActiveMemberAsync(userId, tenantId, cancellationToken).ConfigureAwait(false) ||
+        await HasActiveBreakGlassAsync(userId, tenantId, cancellationToken).ConfigureAwait(false);
+
+    public Task<bool> HasActiveBreakGlassAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken)
+    {
+        var now = clock.GetUtcNow();
+        return db.BreakGlassGrants.AsNoTracking().AnyAsync(
+            g => g.UserId == userId && g.TenantId == tenantId && g.ApprovedBy != null && g.ExpiresAt > now, cancellationToken);
+    }
+
     public Task<bool> IsPlatformOperatorAsync(Guid userId, CancellationToken cancellationToken) =>
         db.PlatformOperators.AsNoTracking().AnyAsync(o => o.UserId == userId, cancellationToken);
 

@@ -114,7 +114,7 @@ public sealed class RequestContextMiddleware(RequestDelegate next)
             {
                 var access = http.RequestServices.GetRequiredService<IAccessControl>();
                 var tenants = http.RequestServices.GetRequiredService<ITenantDirectory>();
-                if (await access.IsActiveMemberAsync(userId, tenantId, http.RequestAborted).ConfigureAwait(false) &&
+                if (await access.HasTenantAccessAsync(userId, tenantId, http.RequestAborted).ConfigureAwait(false) &&
                     await tenants.FindAsync(tenantId, http.RequestAborted).ConfigureAwait(false) is { IsActive: true })
                 {
                     ctx.SetTenant(tenantId);

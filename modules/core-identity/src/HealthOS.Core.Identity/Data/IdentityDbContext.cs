@@ -72,8 +72,24 @@ public sealed class RoleAssignment
     public DateTimeOffset CreatedAt { get; set; }
 }
 
+public sealed class BreakGlassGrant
+{
+    public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
+    public Guid UserId { get; set; }
+    public required string Reason { get; set; }
+    public DateTimeOffset RequestedAt { get; set; }
+    public DateTimeOffset ExpiresAt { get; set; }
+    public Guid? ApprovedBy { get; set; }
+    public DateTimeOffset? ApprovedAt { get; set; }
+
+    public bool IsActive(DateTimeOffset now) => ApprovedBy is not null && now < ExpiresAt;
+}
+
 public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : ModuleDbContext(options)
 {
+    public DbSet<BreakGlassGrant> BreakGlassGrants => Set<BreakGlassGrant>();
+
     public const string SchemaName = "core_identity";
 
     protected override string Schema => SchemaName;
@@ -138,6 +154,19 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
             e.Property(x => x.TenantId).HasColumnName("tenant_id");
             e.Property(x => x.RoleId).HasColumnName("role_id");
             e.Property(x => x.Permission).HasColumnName("permission");
+        });
+
+        modelBuilder.Entity<BreakGlassGrant>(e =>
+        {
+            e.ToTable("break_glass_grant");
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id");
+            e.Property(x => x.UserId).HasColumnName("user_id");
+            e.Property(x => x.Reason).HasColumnName("reason");
+            e.Property(x => x.RequestedAt).HasColumnName("requested_at");
+            e.Property(x => x.ExpiresAt).HasColumnName("expires_at");
+            e.Property(x => x.ApprovedBy).HasColumnName("approved_by");
+            e.Property(x => x.ApprovedAt).HasColumnName("approved_at");
         });
 
         modelBuilder.Entity<RoleAssignment>(e =>
