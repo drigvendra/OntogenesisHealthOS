@@ -1,4 +1,10 @@
+using System.Security.Claims;
+using HealthOS.Core.Identity.Contracts;
+using HealthOS.Core.Tenancy.Contracts;
+using HealthOS.Modules.Sdk.Context;
 using HealthOS.Modules.Sdk.Security;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
@@ -6,30 +12,28 @@ namespace HealthOS.CoreApi.Security;
 
 public sealed record PermissionRequirement(string Permission) : IAuthorizationRequirement;
 
-/// <summary>Decides whether a principal holds a permission (in the current tenant/site scope).</summary>
-public interface IPermissionEvaluator
+public sealed partial class PermissionAuthorizationHandler(IHttpContextAccessor http, ILogger<PermissionAuthorizationHandler> logger)
+    : AuthorizationHandler<PermissionRequirement>
 {
-    Task<bool> HasPermissionAsync(System.Security.Claims.ClaimsPrincipal user, string permission, CancellationToken cancellationToken);
-}
+    [LoggerMessage(Level = LogLevel.Information, Message = "Permission {Permission} denied: {Reason}")]
+    private static partial void LogDenied(ILogger logger, string permission, string reason);
 
-/// <summary>
-/// M1 evaluator: no role/permission store exists yet (M2), so every permission check is denied.
-/// Fail-closed by design; replaced in M2-06.
-/// </summary>
-public sealed class DenyAllPermissionEvaluator : IPermissionEvaluator
-{
-    public Task<bool> HasPermissionAsync(System.Security.Claims.ClaimsPrincipal user, string permission, CancellationToken cancellationToken)
-        => Task.FromResult(false);
-}
-
-public sealed class PermissionAuthorizationHandler(IPermissionEvaluator evaluator) : AuthorizationHandler<PermissionRequirement>
-{
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
-        if (context.User.Identity?.IsAuthenticated == true &&
-            await evaluator.HasPermissionAsync(context.User, requirement.Permission, CancellationToken.None).ConfigureAwait(false))
+        if (context.User.Identity?.IsAuthenticated != true || http.HttpContext is not { } httpContext)
+        {
+            return;
+        }
+
+        var evaluator = httpContext.RequestServices.GetRequiredService<IPermissionEvaluator>();
+        var decision = await evaluator.EvaluateAsync(context.User, requirement.Permission, httpContext.RequestAborted).ConfigureAwait(false);
+        if (decision.Granted)
         {
             context.Succeed(requirement);
+        }
+        else
+        {
+            LogDenied(logger, requirement.Permission, decision.Reason);
         }
     }
 }
@@ -57,4 +61,63 @@ public sealed class PermissionPolicyProvider(IOptions<AuthorizationOptions> opti
     public Task<AuthorizationPolicy> GetDefaultPolicyAsync() => _fallback.GetDefaultPolicyAsync();
 
     public Task<AuthorizationPolicy?> GetFallbackPolicyAsync() => _fallback.GetFallbackPolicyAsync();
+}
+
+/// <summary>
+/// Builds the request context from the authenticated session. The tenant comes only from the session
+/// claim and is re-validated (active membership, active tenant) on every API request, so revoking a
+/// membership or suspending a tenant takes effect immediately. /api/platform/* runs in platform scope.
+/// </summary>
+public sealed class RequestContextMiddleware(RequestDelegate next)
+{
+    public async Task InvokeAsync(HttpContext http, RequestContext ctx)
+    {
+        var user = http.User;
+        if (http.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase) &&
+            user.Identity?.IsAuthenticated == true &&
+            Guid.TryParse(user.FindFirstValue(HealthOsClaims.UserId), out var userId))
+        {
+            ctx.SetUser(userId);
+            if (http.Request.Path.StartsWithSegments("/api/platform", StringComparison.OrdinalIgnoreCase))
+            {
+                ctx.EnterPlatformScope();
+            }
+            else if (Guid.TryParse(user.FindFirstValue(HealthOsClaims.TenantId), out var tenantId))
+            {
+                var access = http.RequestServices.GetRequiredService<IAccessControl>();
+                var tenants = http.RequestServices.GetRequiredService<ITenantDirectory>();
+                if (await access.IsActiveMemberAsync(userId, tenantId, http.RequestAborted).ConfigureAwait(false) &&
+                    await tenants.FindAsync(tenantId, http.RequestAborted).ConfigureAwait(false) is { IsActive: true })
+                {
+                    ctx.SetTenant(tenantId);
+                }
+            }
+        }
+
+        await next(http).ConfigureAwait(false);
+    }
+}
+
+/// <summary>Re-issues the session cookie with a new active tenant claim.</summary>
+public sealed class CookieSessionManager(IHttpContextAccessor accessor) : ISessionManager
+{
+    public async Task SetActiveTenantAsync(Guid? tenantId)
+    {
+        var http = accessor.HttpContext ?? throw new InvalidOperationException("No HTTP context.");
+        var result = await http.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme).ConfigureAwait(false);
+        if (!result.Succeeded || result.Principal.Identity is not ClaimsIdentity current)
+        {
+            throw new InvalidOperationException("No cookie session to update.");
+        }
+
+        var identity = new ClaimsIdentity(
+            result.Principal.Claims.Where(c => c.Type != HealthOsClaims.TenantId),
+            current.AuthenticationType, current.NameClaimType, current.RoleClaimType);
+        if (tenantId is { } t)
+        {
+            identity.AddClaim(new Claim(HealthOsClaims.TenantId, t.ToString()));
+        }
+
+        await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity), result.Properties).ConfigureAwait(false);
+    }
 }

@@ -32,6 +32,9 @@ public sealed partial record DatabaseRoles
     /// <summary>Application login. NOINHERIT and no privileges of its own: it must SET ROLE to a module role.</summary>
     public string App => $"{Prefix}_app";
 
+    /// <summary>Group role for shared platform routines (e.g. audit append) granted to every module role.</summary>
+    public string PlatformServices => $"{Prefix}_platform_services";
+
     /// <summary>Group role holding a single module's privileges on that module's schema.</summary>
     public string ForModuleSchema(string schema)
     {

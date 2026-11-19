@@ -91,6 +91,11 @@ public static partial class ManifestValidator
                 Add("PERMISSION_NAMESPACE", $"Permission '{p.Code}' must start with '{namespacePrefix}'.");
             }
 
+            if (p.Scope == PermissionScope.Platform && m.Kind != ModuleKind.Platform)
+            {
+                Add("PLATFORM_PERMISSION", $"Permission '{p.Code}' has platform scope but '{m.Id}' is not a platform module.");
+            }
+
             if (!permissionCodes.Add(p.Code))
             {
                 Add("DUPLICATE_PERMISSION", $"Permission '{p.Code}' is declared more than once.");

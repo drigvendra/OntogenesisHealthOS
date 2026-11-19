@@ -1,5 +1,7 @@
 using HealthOS.Core.Identity;
+using HealthOS.Core.Tenancy;
 using HealthOS.Modules.Sdk.Composition;
+using HealthOS.Modules.Sdk.Security;
 
 namespace HealthOS.CoreApi.Composition;
 
@@ -13,10 +15,11 @@ public static class InstalledModules
 {
     /// <summary>
     /// Modules compiled into this package. Generated from the bundle profile from M3 onwards;
-    /// hand-maintained in M1.
+    /// hand-maintained until then.
     /// </summary>
     public static IReadOnlyList<IHealthOsModule> Create() =>
     [
+        new CoreTenancyModule(),
         new CoreIdentityModule(),
     ];
 }
@@ -25,7 +28,7 @@ public static class ModuleHostExtensions
 {
     /// <summary>
     /// Resolves the package (fails startup on any manifest/dependency issue), then registers
-    /// module services in dependency order.
+    /// module services in dependency order and the permission catalog of all installed modules.
     /// </summary>
     public static IReadOnlyList<IHealthOsModule> AddHealthOsModules(
         this WebApplicationBuilder builder,
@@ -48,6 +51,7 @@ public static class ModuleHostExtensions
         }
 
         builder.Services.AddSingleton<IReadOnlyList<IHealthOsModule>>(ordered);
+        builder.Services.AddSingleton(new PermissionCatalog(ordered.Select(m => m.Manifest)));
         return ordered;
     }
 

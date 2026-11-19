@@ -1,29 +1,37 @@
 namespace HealthOS.Core.Identity.Contracts;
 
-/// <summary>The authenticated principal as seen by HealthOS. Tenant membership is added in M2.</summary>
+/// <summary>The authenticated principal as seen by HealthOS.</summary>
 /// <param name="UserId">Internal HealthOS user id; null only if provisioning has not happened for this session.</param>
+/// <param name="ActiveTenantId">Tenant selected for this session (validated membership), if any.</param>
 public sealed record CurrentUser(
     Guid? UserId,
     string SubjectId,
     string? DisplayName,
     string? Email,
     IReadOnlyList<string> AuthenticationMethods,
-    bool MultiFactorAuthenticated);
+    bool MultiFactorAuthenticated,
+    Guid? ActiveTenantId,
+    bool IsPlatformOperator);
 
 /// <summary>Identity asserted by the external identity provider at sign-in.</summary>
 public sealed record ExternalIdentity(string Issuer, string Subject, string? DisplayName, string? Email);
 
 /// <summary>
 /// Maps identity-provider subjects to stable internal user ids (just-in-time provisioning).
-/// Users are global; tenant membership is a separate concept (M2).
+/// Users are global; tenant membership is separate and tenant-scoped.
 /// </summary>
 public interface IUserDirectory
 {
     Task<Guid> EnsureUserAsync(ExternalIdentity identity, CancellationToken cancellationToken);
 }
 
-public static class HealthOsClaimTypes
+/// <summary>Membership and operator checks used by the host to build the request context.</summary>
+public interface IAccessControl
 {
-    /// <summary>Internal HealthOS user id added to the session at sign-in.</summary>
-    public const string UserId = "hos_uid";
+    /// <summary>Tenants where the user has an active membership (reads the user's own memberships only).</summary>
+    Task<IReadOnlyList<Guid>> GetActiveTenantIdsAsync(Guid userId, CancellationToken cancellationToken);
+
+    Task<bool> IsActiveMemberAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken);
+
+    Task<bool> IsPlatformOperatorAsync(Guid userId, CancellationToken cancellationToken);
 }

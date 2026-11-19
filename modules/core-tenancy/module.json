@@ -1,0 +1,25 @@
+{
+  "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
+  "id": "core.tenancy",
+  "kind": "platform",
+  "version": "0.1.0",
+  "displayName": "Tenancy and organization structure",
+  "requiresCore": "^0.1.0",
+  "dependencies": [],
+  "capabilities": ["tenants", "organizations", "sites", "departments"],
+  "permissions": [
+    { "code": "core.tenancy.structure.read", "description": "View the tenant's organizations, sites and departments" },
+    { "code": "core.tenancy.structure.manage", "description": "Create organizations, sites and departments", "requiresMfa": true },
+    { "code": "core.tenancy.tenants.read", "description": "List tenants in this deployment cell", "scope": "platform" },
+    { "code": "core.tenancy.tenants.manage", "description": "Create and suspend tenants", "scope": "platform" }
+  ],
+  "contracts": {
+    "provides": {
+      "api": [{ "name": "core-tenancy-api", "version": "0.1.0" }],
+      "events": []
+    }
+  },
+  "database": { "schema": "core_tenancy" },
+  "dataRetention": { "defaultPolicy": "tenant-configuration", "destructiveUninstall": false },
+  "healthChecks": []
+}

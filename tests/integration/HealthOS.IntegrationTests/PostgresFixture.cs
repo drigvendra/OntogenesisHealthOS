@@ -1,13 +1,20 @@
 using System.Security.Cryptography;
+using HealthOS.Core.Identity;
+using HealthOS.Core.Tenancy;
+using HealthOS.Modules.Sdk.Composition;
+using HealthOS.Modules.Sdk.Context;
+using HealthOS.Modules.Sdk.Security;
 using HealthOS.Platform.Data;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 namespace HealthOS.IntegrationTests;
 
 /// <summary>
 /// Creates an isolated database and role set per test run on the PostgreSQL server given by
-/// HEALTHOS_TEST_PG_ADMIN (an administrative connection string). Everything is dropped afterwards.
-/// When the variable is not set, tests are reported as skipped, never as passed.
+/// HEALTHOS_TEST_PG_ADMIN (an administrative connection string), migrates all platform modules,
+/// and drops everything afterwards. Without the variable, tests are reported as skipped, never passed.
 /// </summary>
 public sealed class PostgresFixture : IAsyncLifetime
 {
@@ -30,6 +37,8 @@ public sealed class PostgresFixture : IAsyncLifetime
     public string AdminDatabaseConnectionString =>
         new NpgsqlConnectionStringBuilder(AdminConnectionString) { Database = DatabaseName }.ConnectionString;
 
+    public static IReadOnlyList<IHealthOsModule> Modules { get; } = [new CoreTenancyModule(), new CoreIdentityModule()];
+
     private string As(string user, string password) =>
         new NpgsqlConnectionStringBuilder(AdminConnectionString)
         {
@@ -42,6 +51,30 @@ public sealed class PostgresFixture : IAsyncLifetime
     public static void SkipIfUnavailable() =>
         Assert.SkipWhen(string.IsNullOrEmpty(AdminConnectionString), $"{AdminVariable} not set; database tests not executed.");
 
+    /// <summary>Module services as the running app would have them, with a settable request context.</summary>
+    public ServiceProvider BuildServices()
+    {
+        var services = new ServiceCollection();
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Platform:Cell"] = "TEST-1" }).Build();
+        services.AddSingleton(new PlatformDatabaseOptions { AppConnectionString = AppConnectionString, Roles = Roles });
+        services.AddScoped<RequestContext>();
+        services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton(new PermissionCatalog(Modules.Select(m => m.Manifest)));
+        foreach (var m in Modules)
+        {
+            m.ConfigureServices(services, config);
+        }
+
+        return services.BuildServiceProvider();
+    }
+
+    public async Task MigrateAsync()
+    {
+        await using var sp = BuildServices();
+        await ModuleMigrator.MigrateAllAsync(MigratorConnectionString, Roles, sp.GetServices<IModuleMigrations>());
+    }
+
     public async ValueTask InitializeAsync()
     {
         if (string.IsNullOrEmpty(AdminConnectionString))
@@ -50,6 +83,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         }
 
         await DatabaseBootstrapper.BootstrapAsync(AdminConnectionString, DatabaseName, Roles, MigratorPassword, AppPassword);
+        await MigrateAsync();
     }
 
     public async ValueTask DisposeAsync()
@@ -59,6 +93,7 @@ public sealed class PostgresFixture : IAsyncLifetime
             return;
         }
 
+        NpgsqlConnection.ClearAllPools();
         await using var c = new NpgsqlConnection(AdminConnectionString);
         await c.OpenAsync();
         await Exec(c, $"DROP DATABASE IF EXISTS \"{DatabaseName}\" WITH (FORCE)");
@@ -87,4 +122,15 @@ public sealed class PostgresFixture : IAsyncLifetime
 #pragma warning restore CA2100
         await cmd.ExecuteNonQueryAsync();
     }
+
+    public static async Task<object?> Scalar(NpgsqlConnection c, string sql)
+    {
+#pragma warning disable CA2100
+        await using var cmd = new NpgsqlCommand(sql, c);
+#pragma warning restore CA2100
+        return await cmd.ExecuteScalarAsync();
+    }
 }
+
+[CollectionDefinition(nameof(DatabaseCollection))]
+public sealed class DatabaseCollection : ICollectionFixture<PostgresFixture>;

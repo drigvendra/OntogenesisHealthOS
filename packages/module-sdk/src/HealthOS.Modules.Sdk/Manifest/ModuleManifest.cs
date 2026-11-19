@@ -41,7 +41,23 @@ public sealed record ModuleDependency(string Id, string Version);
 
 public sealed record ModuleLicense(string ProductCode, string Feature);
 
-public sealed record PermissionDeclaration(string Code, string Description, bool RequiresESignature = false);
+public sealed record PermissionDeclaration(
+    string Code,
+    string Description,
+    bool RequiresESignature = false,
+    PermissionScope Scope = PermissionScope.Tenant,
+    bool RequiresMfa = false);
+
+/// <summary>
+/// Tenant permissions are granted through tenant roles. Platform permissions belong to Ontogenesis
+/// platform operators only, always require MFA, and may only be declared by platform modules.
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<PermissionScope>))]
+public enum PermissionScope
+{
+    Tenant,
+    Platform,
+}
 
 public sealed record ModuleContracts
 {

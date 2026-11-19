@@ -5,6 +5,11 @@
     <Project Path="modules/core-identity/src/HealthOS.Core.Identity.Contracts/HealthOS.Core.Identity.Contracts.csproj" />
     <Project Path="modules/core-identity/src/HealthOS.Core.Identity/HealthOS.Core.Identity.csproj" />
   </Folder>
+  <Folder Name="/modules/core-tenancy/" />
+  <Folder Name="/modules/core-tenancy/src/">
+    <Project Path="modules/core-tenancy/src/HealthOS.Core.Tenancy.Contracts/HealthOS.Core.Tenancy.Contracts.csproj" />
+    <Project Path="modules/core-tenancy/src/HealthOS.Core.Tenancy/HealthOS.Core.Tenancy.csproj" />
+  </Folder>
   <Folder Name="/packages/" />
   <Folder Name="/packages/module-sdk/" />
   <Folder Name="/packages/module-sdk/src/">

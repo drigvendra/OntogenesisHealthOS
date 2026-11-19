@@ -114,7 +114,18 @@ public static class BffAuthentication
             new HealthOS.Core.Identity.Contracts.ExternalIdentity(issuer, subject, principal.FindFirst("name")?.Value, principal.FindFirst("email")?.Value),
             ctx.HttpContext.RequestAborted).ConfigureAwait(false);
 
-        identity.AddClaim(new System.Security.Claims.Claim(HealthOS.Core.Identity.Contracts.HealthOsClaimTypes.UserId, userId.ToString()));
+        identity.AddClaim(new System.Security.Claims.Claim(HealthOS.Modules.Sdk.Security.HealthOsClaims.UserId, userId.ToString()));
+
+        // Convenience: a user with exactly one active tenant starts in it. Others choose via
+        // PUT /api/core/identity/session/tenant. Membership is re-validated on every request anyway.
+        var context = ctx.HttpContext.RequestServices.GetRequiredService<HealthOS.Modules.Sdk.Context.RequestContext>();
+        context.SetUser(userId);
+        var access = ctx.HttpContext.RequestServices.GetRequiredService<HealthOS.Core.Identity.Contracts.IAccessControl>();
+        var tenants = await access.GetActiveTenantIdsAsync(userId, ctx.HttpContext.RequestAborted).ConfigureAwait(false);
+        if (tenants.Count == 1)
+        {
+            identity.AddClaim(new System.Security.Claims.Claim(HealthOS.Modules.Sdk.Security.HealthOsClaims.TenantId, tenants[0].ToString()));
+        }
     }
 
     private static Task StatusOrRedirect(RedirectContext<CookieAuthenticationOptions> ctx, int status)

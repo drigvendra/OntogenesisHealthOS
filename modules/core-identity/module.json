@@ -2,15 +2,21 @@
   "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
   "id": "core.identity",
   "kind": "platform",
-  "version": "0.1.0",
-  "displayName": "Identity",
+  "version": "0.2.0",
+  "displayName": "Identity and access",
   "requiresCore": "^0.1.0",
-  "dependencies": [],
-  "capabilities": ["current-user", "user-directory"],
-  "permissions": [],
+  "dependencies": [{ "id": "core.tenancy", "version": "^0.1.0" }],
+  "capabilities": ["current-user", "user-directory", "tenant-membership", "roles", "permission-evaluation"],
+  "permissions": [
+    { "code": "core.identity.users.read", "description": "View members of the tenant and their roles" },
+    { "code": "core.identity.users.manage", "description": "Add or suspend tenant members", "requiresMfa": true },
+    { "code": "core.identity.roles.manage", "description": "Create roles and assign them to members", "requiresMfa": true },
+    { "code": "core.identity.tenant-admins.manage", "description": "Appoint tenant administrators", "scope": "platform" },
+    { "code": "core.identity.operators.read", "description": "View platform operators", "scope": "platform" }
+  ],
   "contracts": {
     "provides": {
-      "api": [{ "name": "core-identity-api", "version": "0.1.0" }],
+      "api": [{ "name": "core-identity-api", "version": "0.2.0" }],
       "events": []
     }
   },

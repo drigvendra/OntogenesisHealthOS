@@ -189,11 +189,23 @@
         "type": "Project",
         "dependencies": {
           "HealthOS.Core.Identity.Contracts": "[1.0.0, )",
+          "HealthOS.Core.Tenancy.Contracts": "[1.0.0, )",
           "HealthOS.Modules.Sdk": "[1.0.0, )",
           "HealthOS.Platform.Data": "[1.0.0, )"
         }
       },
       "healthos.core.identity.contracts": {
+        "type": "Project"
+      },
+      "healthos.core.tenancy": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Core.Tenancy.Contracts": "[1.0.0, )",
+          "HealthOS.Modules.Sdk": "[1.0.0, )",
+          "HealthOS.Platform.Data": "[1.0.0, )"
+        }
+      },
+      "healthos.core.tenancy.contracts": {
         "type": "Project"
       },
       "healthos.modules.sdk": {
@@ -207,6 +219,7 @@
       "healthos.platform.data": {
         "type": "Project",
         "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.15, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.15, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"

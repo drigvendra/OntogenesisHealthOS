@@ -3,6 +3,7 @@ using HealthOS.CoreApi.Composition;
 using HealthOS.CoreApi.Health;
 using HealthOS.CoreApi.Security;
 using HealthOS.Modules.Sdk.Compliance;
+using HealthOS.Modules.Sdk.Context;
 using HealthOS.Modules.Sdk.Security;
 using HealthOS.Platform.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -53,14 +54,18 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton(sp => new PlatformDatabaseOptions
 {
     AppConnectionString = sp.GetRequiredService<IOptions<DatabaseSettings>>().Value.ConnectionString,
-    Roles = new DatabaseRoles(builder.Configuration["Database:RolePrefix"] ?? "hos"),
+    Roles = new DatabaseRoles(sp.GetRequiredService<IConfiguration>()["Database:RolePrefix"] ?? "hos"),
 });
 
 // ---- Security --------------------------------------------------------------------------------------
 builder.Services.AddBffAuthentication(builder.Environment);
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
-builder.Services.AddSingleton<IPermissionEvaluator, DenyAllPermissionEvaluator>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<RequestContext>();
+builder.Services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
+builder.Services.AddScoped<ISessionManager, CookieSessionManager>();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddAuthorization(o =>
 {
     // Defense in depth: an endpoint that somehow lacks a declaration still requires authentication.
@@ -82,6 +87,11 @@ if (DatabaseCommands.IsDatabaseCommand(args))
     return await DatabaseCommands.RunAsync(app, args).ConfigureAwait(false);
 }
 
+if (PlatformCommands.IsPlatformCommand(args))
+{
+    return await PlatformCommands.RunAsync(app, args).ConfigureAwait(false);
+}
+
 app.UseExceptionHandler();
 if (!app.Environment.IsDevelopment())
 {
@@ -100,6 +110,7 @@ app.Use(async (ctx, next) =>
 
 app.UseMiddleware<CsrfHeaderMiddleware>();
 app.UseAuthentication();
+app.UseMiddleware<RequestContextMiddleware>();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false, ResponseWriter = WriteHealth })
