@@ -176,6 +176,7 @@ public static class ModuleMigrator
         await DatabaseBootstrapper.ExecAsync(c, $"GRANT USAGE ON SCHEMA {Q(schema)} TO {Q(moduleRole)}", ct).ConfigureAwait(false);
         await DatabaseBootstrapper.ExecAsync(c, $"ALTER DEFAULT PRIVILEGES FOR ROLE {Q(roles.Migrator)} IN SCHEMA {Q(schema)} GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {Q(moduleRole)}", ct).ConfigureAwait(false);
         await DatabaseBootstrapper.ExecAsync(c, $"ALTER DEFAULT PRIVILEGES FOR ROLE {Q(roles.Migrator)} IN SCHEMA {Q(schema)} GRANT USAGE, SELECT ON SEQUENCES TO {Q(moduleRole)}", ct).ConfigureAwait(false);
-        await DatabaseBootstrapper.ExecAsync(c, $"ALTER DEFAULT PRIVILEGES FOR ROLE {Q(roles.Migrator)} IN SCHEMA {Q(schema)} REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC", ct).ConfigureAwait(false);
+        // Note: functions are created with PUBLIC EXECUTE by PostgreSQL default; migration scripts must
+        // REVOKE ... FROM PUBLIC explicitly (schema-level default privileges cannot remove that default).
     }
 }

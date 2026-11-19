@@ -1,5 +1,6 @@
 using HealthOS.Core.Identity.Contracts;
 using HealthOS.Modules.Sdk.Security;
+using HealthOS.Platform.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace HealthOS.Core.Identity.Data;
@@ -71,7 +72,8 @@ internal sealed class AccessControl(IdentityDbContext db, PermissionCatalog cata
             db.RoleAssignments.Add(new RoleAssignment { Id = Guid.CreateVersion7(now), TenantId = tenantId, UserId = userId, RoleId = role.Id, CreatedAt = now });
         }
 
-        await db.SaveChangesAsync(ct).ConfigureAwait(false);
+        await db.SaveChangesWithAuditAsync(new AuditRecord("core.identity.tenant-admin.appointed", "tenant", tenantId.ToString(),
+            Details: new Dictionary<string, object?> { ["userId"] = userId }), ct).ConfigureAwait(false);
     }
 
     public async Task GrantPlatformOperatorAsync(Guid userId, Guid? grantedBy, CancellationToken ct)
@@ -79,7 +81,7 @@ internal sealed class AccessControl(IdentityDbContext db, PermissionCatalog cata
         if (!await db.PlatformOperators.AnyAsync(o => o.UserId == userId, ct).ConfigureAwait(false))
         {
             db.PlatformOperators.Add(new PlatformOperator { UserId = userId, GrantedAt = clock.GetUtcNow(), GrantedBy = grantedBy });
-            await db.SaveChangesAsync(ct).ConfigureAwait(false);
+            await db.SaveChangesWithAuditAsync(new AuditRecord("core.identity.platform-operator.granted", "user", userId.ToString()), ct).ConfigureAwait(false);
         }
     }
 

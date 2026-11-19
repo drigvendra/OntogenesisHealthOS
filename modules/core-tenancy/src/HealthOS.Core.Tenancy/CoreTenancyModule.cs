@@ -93,7 +93,8 @@ public sealed partial class CoreTenancyModule : HealthOsModule
                 db.Tenants.Add(tenant);
                 try
                 {
-                    await db.SaveChangesAsync(ct);
+                    await db.SaveChangesWithAuditAsync(new AuditRecord("core.tenancy.tenant.created", "tenant", tenant.Id.ToString(),
+                        Details: new Dictionary<string, object?> { ["code"] = tenant.Code, ["cell"] = tenant.RegionCell }), ct);
                 }
                 catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
                 {
@@ -122,7 +123,8 @@ public sealed partial class CoreTenancyModule : HealthOsModule
         }
 
         tenant.Status = status;
-        await db.SaveChangesAsync(ct);
+        var action = status == TenantStatus.Active ? "core.tenancy.tenant.activated" : "core.tenancy.tenant.suspended";
+        await db.SaveChangesWithAuditAsync(new AuditRecord(action, "tenant", tenant.Id.ToString()), ct);
         return Results.Ok(tenant.ToSummary());
     }
 
@@ -146,7 +148,7 @@ public sealed partial class CoreTenancyModule : HealthOsModule
 
                 var org = new Organization { Id = Guid.CreateVersion7(), TenantId = ctx.TenantId!.Value, Name = req.Name.Trim(), CreatedAt = clock.GetUtcNow() };
                 db.Organizations.Add(org);
-                await db.SaveChangesAsync(ct);
+                await db.SaveChangesWithAuditAsync(new AuditRecord("core.tenancy.organization.created", "organization", org.Id.ToString()), ct);
                 return Results.Created($"/api/core/tenancy/organizations/{org.Id}", new OrganizationDto(org.Id, org.Name));
             })
             .RequirePermission("core.tenancy.structure.manage");
@@ -198,7 +200,8 @@ public sealed partial class CoreTenancyModule : HealthOsModule
                 db.Sites.Add(site);
                 try
                 {
-                    await db.SaveChangesAsync(ct);
+                    await db.SaveChangesWithAuditAsync(new AuditRecord("core.tenancy.site.created", "site", site.Id.ToString(),
+                        Details: new Dictionary<string, object?> { ["code"] = site.Code }), ct);
                 }
                 catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
                 {
@@ -230,7 +233,7 @@ public sealed partial class CoreTenancyModule : HealthOsModule
                 db.Departments.Add(dept);
                 try
                 {
-                    await db.SaveChangesAsync(ct);
+                    await db.SaveChangesWithAuditAsync(new AuditRecord("core.tenancy.department.created", "department", dept.Id.ToString()), ct);
                 }
                 catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
                 {

@@ -127,7 +127,7 @@ public sealed partial class CoreIdentityModule : HealthOsModule
                 }
 
                 db.Memberships.Add(new TenantMembership { TenantId = ctx.TenantId!.Value, UserId = user.Id, CreatedAt = clock.GetUtcNow() });
-                await db.SaveChangesAsync(ct);
+                await db.SaveChangesWithAuditAsync(new AuditRecord("core.identity.member.added", "user", user.Id.ToString()), ct);
                 return Results.Created($"/api/core/identity/members/{user.Id}", new MemberDto(user.Id, user.DisplayName, user.Email, MembershipStatus.Active, []));
             })
             .RequirePermission("core.identity.users.manage");
@@ -175,7 +175,8 @@ public sealed partial class CoreIdentityModule : HealthOsModule
 
                 try
                 {
-                    await db.SaveChangesAsync(ct);
+                    await db.SaveChangesWithAuditAsync(new AuditRecord("core.identity.role.created", "role", role.Id.ToString(),
+                        Details: new Dictionary<string, object?> { ["code"] = role.Code, ["permissions"] = req.Permissions!.Distinct().Order().ToArray() }), ct);
                 }
                 catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
                 {
@@ -205,7 +206,8 @@ public sealed partial class CoreIdentityModule : HealthOsModule
                 });
                 try
                 {
-                    await db.SaveChangesAsync(ct);
+                    await db.SaveChangesWithAuditAsync(new AuditRecord("core.identity.role.assigned", "user", userId.ToString(),
+                        Details: new Dictionary<string, object?> { ["roleId"] = req.RoleId, ["siteId"] = req.SiteId }), ct);
                 }
                 catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
                 {

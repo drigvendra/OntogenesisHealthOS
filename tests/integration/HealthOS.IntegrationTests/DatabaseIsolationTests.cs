@@ -67,7 +67,12 @@ public sealed class DatabaseIsolationTests(PostgresFixture db)
         await using var c = await OpenAsync(db.AdminDatabaseConnectionString);
 
         var problems = new List<string>();
-        foreach (DbContext ctx in new DbContext[] { scope.ServiceProvider.GetRequiredService<IdentityDbContext>(), scope.ServiceProvider.GetRequiredService<TenancyDbContext>() })
+        foreach (DbContext ctx in new DbContext[]
+                 {
+                     scope.ServiceProvider.GetRequiredService<IdentityDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<TenancyDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<HealthOS.Core.Audit.AuditDbContext>(),
+                 })
         {
             foreach (var entity in ctx.Model.GetEntityTypes())
             {

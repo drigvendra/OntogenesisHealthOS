@@ -34,6 +34,34 @@ public sealed partial class PermissionAuthorizationHandler(IHttpContextAccessor 
         else
         {
             LogDenied(logger, requirement.Permission, decision.Reason);
+            await AuditDenialAsync(httpContext, requirement.Permission, decision.Reason).ConfigureAwait(false);
+        }
+    }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Could not write permission denial to the audit trail")]
+    private static partial void LogAuditFailure(ILogger logger, Exception exception);
+
+    /// <summary>Denials are recorded in the tenant chain (or the platform chain on platform endpoints).</summary>
+    private async Task AuditDenialAsync(HttpContext httpContext, string permission, string reason)
+    {
+        var ctx = httpContext.RequestServices.GetRequiredService<IRequestContext>();
+        if (ctx.UserId is null || (ctx.TenantId is null && !ctx.IsPlatformScope))
+        {
+            return; // no chain to write to; the structured log above still records it
+        }
+
+        try
+        {
+            await httpContext.RequestServices.GetRequiredService<HealthOS.Core.Audit.IAuditLog>().RecordAsync(
+                new HealthOS.Platform.Data.AuditRecord("core.security.permission.denied", "permission", permission, HealthOS.Platform.Data.AuditOutcome.Denied,
+                    new Dictionary<string, object?> { ["reason"] = reason, ["path"] = httpContext.Request.Path.Value }),
+                httpContext.RequestAborted).ConfigureAwait(false);
+        }
+#pragma warning disable CA1031 // A failed denial audit must not turn a 403 into a 500; it is logged as an error.
+        catch (Exception ex)
+#pragma warning restore CA1031
+        {
+            LogAuditFailure(logger, ex);
         }
     }
 }

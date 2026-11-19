@@ -1,5 +1,9 @@
 <Solution>
   <Folder Name="/modules/" />
+  <Folder Name="/modules/core-audit/" />
+  <Folder Name="/modules/core-audit/src/">
+    <Project Path="modules/core-audit/src/HealthOS.Core.Audit/HealthOS.Core.Audit.csproj" />
+  </Folder>
   <Folder Name="/modules/core-identity/" />
   <Folder Name="/modules/core-identity/src/">
     <Project Path="modules/core-identity/src/HealthOS.Core.Identity.Contracts/HealthOS.Core.Identity.Contracts.csproj" />

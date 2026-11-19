@@ -19,6 +19,7 @@ public static class InstalledModules
     /// </summary>
     public static IReadOnlyList<IHealthOsModule> Create() =>
     [
+        new HealthOS.Core.Audit.CoreAuditModule(),
         new CoreTenancyModule(),
         new CoreIdentityModule(),
     ];

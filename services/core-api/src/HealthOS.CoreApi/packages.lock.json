@@ -185,6 +185,13 @@
           "Microsoft.IdentityModel.Tokens": "8.19.2"
         }
       },
+      "healthos.core.audit": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )",
+          "HealthOS.Platform.Data": "[1.0.0, )"
+        }
+      },
       "healthos.core.identity": {
         "type": "Project",
         "dependencies": {

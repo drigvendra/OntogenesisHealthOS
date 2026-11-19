@@ -602,6 +602,13 @@
           "xunit.v3.runner.common": "[4.0.3]"
         }
       },
+      "healthos.core.audit": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )",
+          "HealthOS.Platform.Data": "[1.0.0, )"
+        }
+      },
       "healthos.core.identity": {
         "type": "Project",
         "dependencies": {
@@ -628,6 +635,7 @@
       "healthos.coreapi": {
         "type": "Project",
         "dependencies": {
+          "HealthOS.Core.Audit": "[1.0.0, )",
           "HealthOS.Core.Identity": "[1.0.0, )",
           "HealthOS.Core.Tenancy": "[1.0.0, )",
           "HealthOS.Modules.Sdk": "[1.0.0, )",

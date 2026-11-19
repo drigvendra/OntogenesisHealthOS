@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "displayName": "Tenancy and organization structure",
   "requiresCore": "^0.1.0",
-  "dependencies": [],
+  "dependencies": [{ "id": "core.audit", "version": "^0.1.0" }],
   "capabilities": ["tenants", "organizations", "sites", "departments"],
   "permissions": [
     { "code": "core.tenancy.structure.read", "description": "View the tenant's organizations, sites and departments" },

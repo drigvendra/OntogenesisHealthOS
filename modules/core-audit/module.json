@@ -1,0 +1,23 @@
+{
+  "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
+  "id": "core.audit",
+  "kind": "platform",
+  "version": "0.1.0",
+  "displayName": "Audit trail",
+  "requiresCore": "^0.1.0",
+  "dependencies": [],
+  "capabilities": ["audit-append", "audit-query", "audit-verification"],
+  "permissions": [
+    { "code": "core.audit.events.read", "description": "View the tenant's audit trail and verify its integrity" },
+    { "code": "core.audit.platform-events.read", "description": "View the platform audit trail", "scope": "platform" }
+  ],
+  "contracts": {
+    "provides": {
+      "api": [{ "name": "core-audit-api", "version": "0.1.0" }],
+      "events": []
+    }
+  },
+  "database": { "schema": "core_audit" },
+  "dataRetention": { "defaultPolicy": "audit", "destructiveUninstall": false },
+  "healthChecks": []
+}

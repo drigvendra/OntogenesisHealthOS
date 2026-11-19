@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\..\..\packages\platform-data\src\HealthOS.Platform.Data\HealthOS.Platform.Data.csproj" />
     <ProjectReference Include="..\..\..\..\modules\core-identity\src\HealthOS.Core.Identity\HealthOS.Core.Identity.csproj" />
     <ProjectReference Include="..\..\..\..\modules\core-tenancy\src\HealthOS.Core.Tenancy\HealthOS.Core.Tenancy.csproj" />
+    <ProjectReference Include="..\..\..\..\modules\core-audit\src\HealthOS.Core.Audit\HealthOS.Core.Audit.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
