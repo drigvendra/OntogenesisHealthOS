@@ -14,7 +14,13 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-var builder = WebApplication.CreateBuilder(args);
+// Content root = the application's own directory, so appsettings*.json load regardless of the
+// working directory the process was started from (e.g. `dotnet path/to/HealthOS.CoreApi.dll`).
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory,
+});
 
 // ---- Logging: structured JSON, classified data (PHI/PII/secrets) erased -------------------------
 builder.Logging.ClearProviders();
