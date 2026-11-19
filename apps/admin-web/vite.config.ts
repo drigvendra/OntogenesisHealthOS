@@ -11,10 +11,12 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
+    // changeOrigin must stay false: core-api builds the OIDC redirect URI from the Host header, which
+    // has to remain localhost:5173 (the origin the browser and Keycloak see).
     proxy: {
-      "/api": coreApi,
-      "/bff": coreApi,
-      "/health": coreApi,
+      "/api": { target: coreApi, changeOrigin: false },
+      "/bff": { target: coreApi, changeOrigin: false },
+      "/health": { target: coreApi, changeOrigin: false },
     },
   },
   test: {
