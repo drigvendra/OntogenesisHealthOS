@@ -1,0 +1,35 @@
+<Solution>
+  <Folder Name="/modules/" />
+  <Folder Name="/modules/core-identity/" />
+  <Folder Name="/modules/core-identity/src/">
+    <Project Path="modules/core-identity/src/HealthOS.Core.Identity.Contracts/HealthOS.Core.Identity.Contracts.csproj" />
+    <Project Path="modules/core-identity/src/HealthOS.Core.Identity/HealthOS.Core.Identity.csproj" />
+  </Folder>
+  <Folder Name="/packages/" />
+  <Folder Name="/packages/module-sdk/" />
+  <Folder Name="/packages/module-sdk/src/">
+    <Project Path="packages/module-sdk/src/HealthOS.Modules.Sdk/HealthOS.Modules.Sdk.csproj" />
+  </Folder>
+  <Folder Name="/packages/module-sdk/tests/">
+    <Project Path="packages/module-sdk/tests/HealthOS.Modules.Sdk.Tests/HealthOS.Modules.Sdk.Tests.csproj" />
+  </Folder>
+  <Folder Name="/packages/platform-data/" />
+  <Folder Name="/packages/platform-data/src/">
+    <Project Path="packages/platform-data/src/HealthOS.Platform.Data/HealthOS.Platform.Data.csproj" />
+  </Folder>
+  <Folder Name="/services/" />
+  <Folder Name="/services/core-api/" />
+  <Folder Name="/services/core-api/src/">
+    <Project Path="services/core-api/src/HealthOS.CoreApi/HealthOS.CoreApi.csproj" />
+  </Folder>
+  <Folder Name="/services/core-api/tests/">
+    <Project Path="services/core-api/tests/HealthOS.CoreApi.Tests/HealthOS.CoreApi.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/architecture/">
+    <Project Path="tests/architecture/HealthOS.ArchitectureTests/HealthOS.ArchitectureTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/integration/">
+    <Project Path="tests/integration/HealthOS.IntegrationTests/HealthOS.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

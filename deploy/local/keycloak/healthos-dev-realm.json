@@ -1,0 +1,63 @@
+{
+  "realm": "healthos-dev",
+  "enabled": true,
+  "displayName": "HealthOS (local development — synthetic users only)",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyDigits": 6,
+  "otpPolicyPeriod": 30,
+  "passwordPolicy": "length(12)",
+  "clients": [
+    {
+      "clientId": "healthos-bff",
+      "name": "HealthOS core-api (BFF)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${HOS_BFF_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:5173/bff/signin-oidc",
+        "http://localhost:5080/bff/signin-oidc"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:5173/bff/signout-callback-oidc##http://localhost:5080/bff/signout-callback-oidc"
+      },
+      "webOrigins": ["+"]
+    }
+  ],
+  "users": [
+    {
+      "username": "synthetic.admin",
+      "email": "synthetic.admin@example.invalid",
+      "emailVerified": true,
+      "firstName": "Synthetic",
+      "lastName": "Admin",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "${HOS_DEV_USER_PASSWORD}", "temporary": false }],
+      "requiredActions": ["CONFIGURE_TOTP"]
+    },
+    {
+      "username": "synthetic.user",
+      "email": "synthetic.user@example.invalid",
+      "emailVerified": true,
+      "firstName": "Synthetic",
+      "lastName": "User",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "${HOS_DEV_USER_PASSWORD}", "temporary": false }]
+    }
+  ]
+}

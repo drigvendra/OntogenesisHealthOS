@@ -1,0 +1,36 @@
+/*
+ * HealthOS design tokens. Products may override the brand tokens (--hos-brand-*) for
+ * product-specific branding; neutral and status tokens are shared.
+ */
+@theme {
+  --color-brand-600: oklch(0.52 0.12 200);
+  --color-brand-700: oklch(0.45 0.11 200);
+  --color-brand-50: oklch(0.97 0.02 200);
+
+  --color-surface: oklch(0.99 0 0);
+  --color-surface-raised: oklch(1 0 0);
+  --color-border: oklch(0.88 0.01 250);
+  --color-text: oklch(0.22 0.02 250);
+  --color-text-muted: oklch(0.45 0.02 250);
+
+  --color-danger-600: oklch(0.55 0.2 25);
+  --color-danger-50: oklch(0.97 0.02 25);
+  --color-warning-50: oklch(0.98 0.04 85);
+  --color-warning-700: oklch(0.5 0.12 70);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface: oklch(0.18 0.01 250);
+    --color-surface-raised: oklch(0.22 0.01 250);
+    --color-border: oklch(0.32 0.01 250);
+    --color-text: oklch(0.95 0.01 250);
+    --color-text-muted: oklch(0.75 0.01 250);
+    --color-brand-50: oklch(0.28 0.04 200);
+    --color-danger-50: oklch(0.3 0.06 25);
+    --color-warning-50: oklch(0.3 0.05 85);
+    --color-warning-700: oklch(0.85 0.1 85);
+  }
+}

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <ProjectReference Include="..\..\..\packages\module-sdk\src\HealthOS.Modules.Sdk\HealthOS.Modules.Sdk.csproj" />
+    <!-- Fixture repositories are data, not code. -->
+    <None Remove="Fixtures\**" />
+    <Compile Remove="Fixtures\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+</Project>

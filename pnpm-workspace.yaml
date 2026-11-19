@@ -1,0 +1,9 @@
+packages:
+  - "apps/*"
+  - "packages/ui-kit"
+
+# Every ignored advisory must have an entry in docs/security/dependency-exceptions.md
+# with justification, owner and review date.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-fc5q-39xc-vjpf

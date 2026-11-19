@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <Description>HealthOS core-api host: composition root of the modular monolith.</Description>
+    <UserSecretsId>healthos-core-api-dev</UserSecretsId>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HealthOS.CoreApi.Tests" />
+  </ItemGroup>
+
+  <!--
+    Composition root. Only this host may reference module internal projects.
+    In M3, bundle build profiles (deploy/bundles/*.json) will select which modules are referenced here.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\packages\module-sdk\src\HealthOS.Modules.Sdk\HealthOS.Modules.Sdk.csproj" />
+    <ProjectReference Include="..\..\..\..\packages\platform-data\src\HealthOS.Platform.Data\HealthOS.Platform.Data.csproj" />
+    <ProjectReference Include="..\..\..\..\modules\core-identity\src\HealthOS.Core.Identity\HealthOS.Core.Identity.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+  </ItemGroup>
+
+</Project>

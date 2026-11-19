@@ -1,0 +1,48 @@
+# --- Secrets (never commit) ---
+.env
+.env.*
+!.env.example
+*.pfx
+*.key
+*.pem
+secrets/
+appsettings.*.local.json
+
+# --- .NET ---
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
+coverage/
+artifacts/
+
+# --- Node / web ---
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+playwright-report/
+test-results/
+blob-report/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Editors / OS ---
+.idea/
+Thumbs.db
+.DS_Store
+
+# --- Local data volumes ---
+deploy/local/data/
+
+# --- Claude Code local settings ---
+.claude/settings.local.json

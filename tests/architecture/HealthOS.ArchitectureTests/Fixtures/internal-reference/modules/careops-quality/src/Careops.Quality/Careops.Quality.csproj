@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\clinicos-core\src\Clinicos.Core\Clinicos.Core.csproj" />
+  </ItemGroup>
+</Project>

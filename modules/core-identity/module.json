@@ -1,0 +1,20 @@
+{
+  "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
+  "id": "core.identity",
+  "kind": "platform",
+  "version": "0.1.0",
+  "displayName": "Identity",
+  "requiresCore": "^0.1.0",
+  "dependencies": [],
+  "capabilities": ["current-user", "user-directory"],
+  "permissions": [],
+  "contracts": {
+    "provides": {
+      "api": [{ "name": "core-identity-api", "version": "0.1.0" }],
+      "events": []
+    }
+  },
+  "database": { "schema": "core_identity" },
+  "dataRetention": { "defaultPolicy": "staff-account", "destructiveUninstall": false },
+  "healthChecks": []
+}
