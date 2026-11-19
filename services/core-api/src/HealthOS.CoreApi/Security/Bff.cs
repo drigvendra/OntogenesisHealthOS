@@ -101,10 +101,9 @@ public static class BffAuthentication
                     var origin = s.PublicOrigin.TrimEnd('/');
                     o.Events.OnRedirectToIdentityProvider = ctx =>
                     {
-                        var uri = origin + o.CallbackPath;
-                        ctx.ProtocolMessage.RedirectUri = uri;
-                        // The same URI must be presented again when redeeming the authorization code.
-                        ctx.Properties.Items[OpenIdConnectDefaults.RedirectUriForCodePropertiesKey] = uri;
+                        // The handler stores this URI in the login state after this event and presents it
+                        // again when redeeming the authorization code.
+                        ctx.ProtocolMessage.RedirectUri = origin + o.CallbackPath;
                         return Task.CompletedTask;
                     };
                     o.Events.OnRedirectToIdentityProviderForSignOut = ctx =>
