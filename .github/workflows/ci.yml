@@ -50,8 +50,10 @@ jobs:
         if: always()
         shell: bash
         run: |
-          grep -E '^\s+(total|succeeded|failed|skipped):' dotnet-test.txt | tr -s ' ' | paste -sd ' ' | sed 's/^/::notice title=.NET tests::/' || true
-          grep -E 'not executed|Skipped' dotnet-test.txt | head -5 | sed 's/^/::warning title=.NET skipped::/' || true
+          clean=$(sed -r 's/\x1B\[[0-9;?]*[A-Za-z]//g; s/\r//g' dotnet-test.txt)
+          echo "$clean" | grep -E '(total|succeeded|failed|skipped):' | sed -E 's/^\s+//; s/^/::notice title=.NET tests::/' || true
+          echo "$clean" | grep -E '\.dll \(net10\.0' | sed -E 's#^.*/##; s/^/::notice title=.NET assembly::/' || true
+          echo "$clean" | grep -E 'not executed' | head -5 | sed -E 's/^\s+//; s/^/::warning title=.NET skipped::/' || true
 
   ai-service:
     runs-on: ubuntu-latest
