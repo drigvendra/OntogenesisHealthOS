@@ -24,4 +24,5 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()  # values come from the environment
+    # mypy sees pydantic's synthesized __init__ with required fields; values actually come from the environment.
+    return Settings()  # type: ignore[call-arg]

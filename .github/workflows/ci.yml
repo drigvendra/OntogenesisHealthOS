@@ -42,7 +42,16 @@ jobs:
         env:
           CI: "true"
       - name: Test (unit, host, architecture, database integration)
-        run: dotnet test --solution HealthOS.slnx --no-build -c Release
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet test --solution HealthOS.slnx --no-build -c Release 2>&1 | tee dotnet-test.txt
+      - name: Publish .NET test totals
+        if: always()
+        shell: bash
+        run: |
+          grep -E '^\s+(total|succeeded|failed|skipped):' dotnet-test.txt | tr -s ' ' | paste -sd ' ' | sed 's/^/::notice title=.NET tests::/' || true
+          grep -E 'not executed|Skipped' dotnet-test.txt | head -5 | sed 's/^/::warning title=.NET skipped::/' || true
 
   ai-service:
     runs-on: ubuntu-latest
@@ -55,7 +64,15 @@ jobs:
       - run: uv python install 3.14
       - run: uv sync --locked
       - run: uv run ruff check .
-      - run: uv run mypy src
+      - name: Type check (mypy strict)
+        shell: bash
+        run: |
+          status=0
+          uv run mypy src > mypy.txt 2>&1 || status=$?
+          cat mypy.txt
+          # Surface errors as annotations (visible on the run page and via the public API).
+          sed -nE 's#^([^:]+):([0-9]+): error: (.*)$#::error file=services/ai-service/\1,line=\2,title=mypy::\3#p' mypy.txt
+          exit $status
       - run: uv run pytest --junitxml=pytest.xml
       - name: Dependency audit
         run: uv export --no-dev --no-emit-project --format requirements-txt > requirements.txt && uv run pip-audit -r requirements.txt --strict
