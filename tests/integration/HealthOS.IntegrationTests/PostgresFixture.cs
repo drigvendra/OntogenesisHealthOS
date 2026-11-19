@@ -38,7 +38,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         new NpgsqlConnectionStringBuilder(AdminConnectionString) { Database = DatabaseName }.ConnectionString;
 
     public static IReadOnlyList<IHealthOsModule> Modules { get; } =
-        [new HealthOS.Core.Audit.CoreAuditModule(), new CoreTenancyModule(), new CoreIdentityModule()];
+        [new HealthOS.Core.Audit.CoreAuditModule(), new CoreTenancyModule(), new HealthOS.Core.Licensing.CoreLicensingModule(), new CoreIdentityModule()];
 
     private string As(string user, string password) =>
         new NpgsqlConnectionStringBuilder(AdminConnectionString)

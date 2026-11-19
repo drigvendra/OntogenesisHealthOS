@@ -204,6 +204,17 @@
       "healthos.core.identity.contracts": {
         "type": "Project"
       },
+      "healthos.core.licensing": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Core.Licensing.Contracts": "[1.0.0, )",
+          "HealthOS.Modules.Sdk": "[1.0.0, )",
+          "HealthOS.Platform.Data": "[1.0.0, )"
+        }
+      },
+      "healthos.core.licensing.contracts": {
+        "type": "Project"
+      },
       "healthos.core.tenancy": {
         "type": "Project",
         "dependencies": {

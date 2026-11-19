@@ -111,6 +111,7 @@ app.Use(async (ctx, next) =>
 app.UseMiddleware<CsrfHeaderMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<RequestContextMiddleware>();
+app.UseMiddleware<EntitlementGateMiddleware>();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false, ResponseWriter = WriteHealth })
@@ -119,6 +120,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c
     .AllowPublic("Readiness probe for orchestrators; reports dependency status only.");
 
 app.MapBffEndpoints();
+app.MapNavigation();
 app.MapHealthOsModules();
 
 await app.RunAsync().ConfigureAwait(false);

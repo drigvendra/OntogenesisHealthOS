@@ -1,7 +1,10 @@
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using HealthOS.CoreApi.Composition;
+using HealthOS.Modules.Sdk.Composition;
 using HealthOS.Modules.Sdk.Security;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -17,10 +20,26 @@ namespace HealthOS.IntegrationTests;
 /// header scheme stands in for the OIDC session cookie and carries the same claims (hos_uid, hos_tid, amr).
 /// Everything after that — request context, membership re-validation, RLS, permissions — is production code.
 /// </summary>
-public sealed class ApiHost(PostgresFixture db) : WebApplicationFactory<Program>
+public sealed class ApiHost(PostgresFixture db, params IHealthOsModule[] extraModules) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        if (extraModules.Length > 0)
+        {
+            // Install additional (test) modules exactly as the host installs real ones.
+            builder.ConfigureTestServices(s =>
+            {
+                var all = InstalledModules.Create().Concat(extraModules).ToList();
+                s.AddSingleton<IReadOnlyList<IHealthOsModule>>(all);
+                s.AddSingleton(new PermissionCatalog(all.Select(m => m.Manifest)));
+                var config = new ConfigurationBuilder().Build();
+                foreach (var m in extraModules)
+                {
+                    m.ConfigureServices(s, config);
+                }
+            });
+        }
+
         builder.UseEnvironment("Testing");
         builder.UseSetting("Database:ConnectionString", db.AppConnectionString);
         builder.UseSetting("Database:RolePrefix", db.Roles.Prefix);

@@ -1,0 +1,24 @@
+{
+  "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
+  "id": "core.licensing",
+  "kind": "platform",
+  "version": "0.1.0",
+  "displayName": "Licensing and entitlements",
+  "requiresCore": "^0.1.0",
+  "dependencies": [{ "id": "core.audit", "version": "^0.1.0" }],
+  "capabilities": ["entitlements", "entitlement-gate"],
+  "permissions": [
+    { "code": "core.licensing.entitlements.read", "description": "View the tenant's licensed features and their status" },
+    { "code": "core.licensing.entitlements.manage", "description": "Grant, extend or revoke tenant entitlements", "scope": "platform" },
+    { "code": "core.licensing.features.read", "description": "List licensable features in this deployment", "scope": "platform" }
+  ],
+  "contracts": {
+    "provides": {
+      "api": [{ "name": "core-licensing-api", "version": "0.1.0" }],
+      "events": []
+    }
+  },
+  "database": { "schema": "core_licensing" },
+  "dataRetention": { "defaultPolicy": "commercial-record", "destructiveUninstall": false },
+  "healthChecks": []
+}

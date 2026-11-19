@@ -21,6 +21,7 @@ public static class InstalledModules
     [
         new HealthOS.Core.Audit.CoreAuditModule(),
         new CoreTenancyModule(),
+        new HealthOS.Core.Licensing.CoreLicensingModule(),
         new CoreIdentityModule(),
     ];
 }
@@ -60,7 +61,9 @@ public static class ModuleHostExtensions
     {
         foreach (var module in app.Services.GetRequiredService<IReadOnlyList<IHealthOsModule>>())
         {
-            module.MapEndpoints(app);
+            // Every endpoint a module maps carries its owner, which the entitlement gate reads.
+            var group = app.MapGroup(string.Empty).WithMetadata(new ModuleOwner(module.Manifest));
+            module.MapEndpoints(group);
         }
     }
 }

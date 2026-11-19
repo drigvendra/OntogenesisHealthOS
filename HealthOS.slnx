@@ -9,6 +9,11 @@
     <Project Path="modules/core-identity/src/HealthOS.Core.Identity.Contracts/HealthOS.Core.Identity.Contracts.csproj" />
     <Project Path="modules/core-identity/src/HealthOS.Core.Identity/HealthOS.Core.Identity.csproj" />
   </Folder>
+  <Folder Name="/modules/core-licensing/" />
+  <Folder Name="/modules/core-licensing/src/">
+    <Project Path="modules/core-licensing/src/HealthOS.Core.Licensing.Contracts/HealthOS.Core.Licensing.Contracts.csproj" />
+    <Project Path="modules/core-licensing/src/HealthOS.Core.Licensing/HealthOS.Core.Licensing.csproj" />
+  </Folder>
   <Folder Name="/modules/core-tenancy/" />
   <Folder Name="/modules/core-tenancy/src/">
     <Project Path="modules/core-tenancy/src/HealthOS.Core.Tenancy.Contracts/HealthOS.Core.Tenancy.Contracts.csproj" />

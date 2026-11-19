@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Public contracts of the core.licensing module.</Description>
+  </PropertyGroup>
+
+</Project>
