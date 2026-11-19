@@ -30,6 +30,7 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${HOS_KEYCLOAK_ADMIN_PASSWORD:?run scripts/dev-up.ps1}
       HOS_BFF_CLIENT_SECRET: ${HOS_BFF_CLIENT_SECRET:?run scripts/dev-up.ps1}
       HOS_DEV_USER_PASSWORD: ${HOS_DEV_USER_PASSWORD:?run scripts/dev-up.ps1}
+      HOS_DEV_TOTP_SECRET: ${HOS_DEV_TOTP_SECRET:?run scripts/dev-up.ps1}
     ports:
       - "127.0.0.1:8080:8080"
     volumes:

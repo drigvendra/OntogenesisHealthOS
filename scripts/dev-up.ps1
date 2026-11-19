@@ -26,7 +26,8 @@ if (-not (Test-Path $envFile)) {
         "HOS_KEYCLOAK_ADMIN_PASSWORD=$(New-Secret)",
         "HOS_BFF_CLIENT_SECRET=$(New-Secret)",
         "HOS_DEV_USER_PASSWORD=Dev-$(New-Secret 9)",
-        "HEALTHOS_AI_CONTEXT_SIGNING_KEY=$(New-Secret 48)"
+        "HEALTHOS_AI_CONTEXT_SIGNING_KEY=$(New-Secret 48)",
+        "HOS_DEV_TOTP_SECRET=$(New-Secret 10)"
     )
     [IO.File]::WriteAllText($envFile, ($lines -join "`n") + "`n", (New-Object Text.UTF8Encoding $false))
     Write-Host 'Generated .env with random local secrets.'

@@ -46,3 +46,6 @@ deploy/local/data/
 
 # --- Claude Code local settings ---
 .claude/settings.local.json
+
+# Local run outputs (scripts/dev-*.sh)
+.run/

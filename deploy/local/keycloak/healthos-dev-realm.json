@@ -36,7 +36,21 @@
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "http://localhost:5173/bff/signout-callback-oidc##http://localhost:5080/bff/signout-callback-oidc"
       },
-      "webOrigins": ["+"]
+      "webOrigins": ["+"],
+      "protocolMappers": [
+        {
+          "name": "authentication methods (amr)",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-amr-mapper",
+          "consentRequired": false,
+          "config": {
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
     }
   ],
   "users": [
@@ -47,8 +61,15 @@
       "firstName": "Synthetic",
       "lastName": "Admin",
       "enabled": true,
-      "credentials": [{ "type": "password", "value": "${HOS_DEV_USER_PASSWORD}", "temporary": false }],
-      "requiredActions": ["CONFIGURE_TOTP"]
+      "credentials": [
+        { "type": "password", "value": "${HOS_DEV_USER_PASSWORD}", "temporary": false },
+        {
+          "type": "otp",
+          "userLabel": "dev authenticator",
+          "secretData": "{\"value\":\"${HOS_DEV_TOTP_SECRET}\"}",
+          "credentialData": "{\"subType\":\"totp\",\"digits\":6,\"counter\":0,\"period\":30,\"algorithm\":\"HmacSHA1\"}"
+        }
+      ]
     },
     {
       "username": "synthetic.user",
