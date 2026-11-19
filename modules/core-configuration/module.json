@@ -9,7 +9,7 @@
     { "id": "core.audit", "version": "^0.1.0" },
     { "id": "core.licensing", "version": "^0.1.0" },
     { "id": "core.modules", "version": "^0.1.0" },
-    { "id": "core.identity", "version": "^0.1.0" }
+    { "id": "core.identity", "version": "^0.2.0" }
   ],
   "capabilities": ["settings", "profiles", "drafts", "snapshots", "rollback"],
   "permissions": [
