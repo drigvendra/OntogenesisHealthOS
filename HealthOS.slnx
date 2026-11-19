@@ -1,5 +1,13 @@
 <Solution>
   <Folder Name="/modules/" />
+  <Folder Name="/modules/careops-quality/" />
+  <Folder Name="/modules/careops-quality/src/">
+    <Project Path="modules/careops-quality/src/HealthOS.CareOps.Quality/HealthOS.CareOps.Quality.csproj" />
+  </Folder>
+  <Folder Name="/modules/clinicos-core/" />
+  <Folder Name="/modules/clinicos-core/src/">
+    <Project Path="modules/clinicos-core/src/HealthOS.ClinicOS.Core/HealthOS.ClinicOS.Core.csproj" />
+  </Folder>
   <Folder Name="/modules/core-audit/" />
   <Folder Name="/modules/core-audit/src/">
     <Project Path="modules/core-audit/src/HealthOS.Core.Audit/HealthOS.Core.Audit.csproj" />
@@ -26,6 +34,18 @@
   <Folder Name="/modules/core-tenancy/src/">
     <Project Path="modules/core-tenancy/src/HealthOS.Core.Tenancy.Contracts/HealthOS.Core.Tenancy.Contracts.csproj" />
     <Project Path="modules/core-tenancy/src/HealthOS.Core.Tenancy/HealthOS.Core.Tenancy.csproj" />
+  </Folder>
+  <Folder Name="/modules/medtechos-assets/" />
+  <Folder Name="/modules/medtechos-assets/src/">
+    <Project Path="modules/medtechos-assets/src/HealthOS.MedTechOS.Assets/HealthOS.MedTechOS.Assets.csproj" />
+  </Folder>
+  <Folder Name="/modules/specialty-dental/" />
+  <Folder Name="/modules/specialty-dental/src/">
+    <Project Path="modules/specialty-dental/src/HealthOS.Specialty.Dental/HealthOS.Specialty.Dental.csproj" />
+  </Folder>
+  <Folder Name="/modules/specialty-vision/" />
+  <Folder Name="/modules/specialty-vision/src/">
+    <Project Path="modules/specialty-vision/src/HealthOS.Specialty.Vision/HealthOS.Specialty.Vision.csproj" />
   </Folder>
   <Folder Name="/packages/" />
   <Folder Name="/packages/module-sdk/" />

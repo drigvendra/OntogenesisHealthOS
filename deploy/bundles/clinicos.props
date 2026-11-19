@@ -1,0 +1,9 @@
+<Project>
+  <!-- Bundle 'clinicos': product modules compiled into the core-api package. Platform modules are always included. -->
+  <PropertyGroup>
+    <HealthOSBundleModules>clinicos.core</HealthOSBundleModules>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../modules/clinicos-core/src/HealthOS.ClinicOS.Core/HealthOS.ClinicOS.Core.csproj" />
+  </ItemGroup>
+</Project>

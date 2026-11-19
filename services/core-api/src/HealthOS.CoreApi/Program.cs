@@ -3,6 +3,7 @@ using HealthOS.CoreApi.Composition;
 using HealthOS.CoreApi.Health;
 using HealthOS.CoreApi.Security;
 using HealthOS.Modules.Sdk.Compliance;
+using HealthOS.Modules.Sdk.Composition;
 using HealthOS.Modules.Sdk.Context;
 using HealthOS.Modules.Sdk.Security;
 using HealthOS.Platform.Data;
@@ -14,6 +15,25 @@ using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+
+// `modules list`: the modules compiled into this package (used by CI to verify bundles; no database needed).
+if (args is ["modules", "list"])
+{
+    var installed = InstalledModules.Create();
+    var resolution = PackageResolver.Resolve(installed.Select(m => m.Manifest), PlatformInfo.CoreVersion);
+    if (!resolution.Succeeded)
+    {
+        await Console.Error.WriteLineAsync(string.Join(Environment.NewLine, resolution.Issues)).ConfigureAwait(false);
+        return 1;
+    }
+
+    foreach (var m in resolution.OrderedModules)
+    {
+        Console.WriteLine(m.Id);
+    }
+
+    return 0;
+}
 
 // Content root = the application's own directory, so appsettings*.json load regardless of the
 // working directory the process was started from (e.g. `dotnet path/to/HealthOS.CoreApi.dll`).

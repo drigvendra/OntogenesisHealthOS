@@ -1,0 +1,18 @@
+{
+  "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
+  "id": "specialty.vision",
+  "kind": "pack",
+  "version": "0.1.0",
+  "displayName": "Vision pack",
+  "requiresCore": "^0.1.0",
+  "dependencies": [{ "id": "clinicos.core", "version": "^0.1.0" }],
+  "license": { "productCode": "VISION", "feature": "pack" },
+  "capabilities": [],
+  "permissions": [
+    { "code": "specialty.vision.exams.read", "description": "View eye examinations" },
+    { "code": "specialty.vision.exams.write", "description": "Record eye examinations and measurements" }
+  ],
+  "ui": { "routes": [{ "path": "/clinic/vision", "app": "clinic-web", "permission": "specialty.vision.exams.read" }] },
+  "dataRetention": { "defaultPolicy": "regulated-record", "destructiveUninstall": false },
+  "healthChecks": []
+}

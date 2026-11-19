@@ -1,0 +1,48 @@
+{
+  "code": "equipment-service",
+  "displayName": "Medical equipment service provider",
+  "description": "MedTechOS: equipment registry, preventive maintenance, calibration and service reports.",
+  "industry": "medtech-service",
+  "specialty": null,
+  "modules": ["medtechos.assets"],
+  "roles": [
+    { "code": "service-manager", "name": "Service manager", "permissions": ["medtechos.assets.read", "medtechos.assets.manage", "medtechos.service.report"] },
+    { "code": "field-engineer", "name": "Field engineer", "permissions": ["medtechos.assets.read", "medtechos.service.report"] }
+  ],
+  "forms": [
+    {
+      "code": "service-report",
+      "title": "Service report",
+      "fields": [
+        { "id": "assetTag", "label": "Asset tag", "type": "Text", "required": true, "maxLength": 50 },
+        { "id": "serviceType", "label": "Service type", "type": "Choice", "required": true, "options": ["preventive", "corrective", "calibration"] },
+        { "id": "findings", "label": "Findings", "type": "TextArea", "required": true, "maxLength": 4000 },
+        { "id": "calibrationResult", "label": "Calibration result", "type": "Choice", "options": ["within tolerance", "adjusted", "out of tolerance"],
+          "visibleWhen": { "field": "serviceType", "op": "equals", "value": "calibration" },
+          "requiredWhen": { "field": "serviceType", "op": "equals", "value": "calibration" } },
+        { "id": "partsReplaced", "label": "Parts replaced", "type": "Boolean" },
+        { "id": "downtimeHours", "label": "Downtime", "type": "Decimal", "unit": "hours", "min": 0, "max": 2000 }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "code": "service-job",
+      "title": "Service job",
+      "initialState": "scheduled",
+      "states": [
+        { "id": "scheduled", "label": "Scheduled" },
+        { "id": "in-progress", "label": "In progress", "slaHours": 48 },
+        { "id": "completed", "label": "Completed" },
+        { "id": "verified", "label": "Verified", "terminal": true },
+        { "id": "cancelled", "label": "Cancelled", "terminal": true }
+      ],
+      "transitions": [
+        { "id": "start", "from": "scheduled", "to": "in-progress", "label": "Start", "permission": "medtechos.service.report" },
+        { "id": "complete", "from": "in-progress", "to": "completed", "label": "Complete", "permission": "medtechos.service.report" },
+        { "id": "verify", "from": "completed", "to": "verified", "label": "Verify", "permission": "medtechos.assets.manage", "requiresDifferentActor": true },
+        { "id": "cancel", "from": "scheduled", "to": "cancelled", "label": "Cancel", "permission": "medtechos.assets.manage" }
+      ]
+    }
+  ]
+}

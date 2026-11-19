@@ -5,6 +5,53 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HealthOS.Core.Identity.Data;
 
+/// <summary>Creates or updates tenant roles from templates (platform scope during onboarding).</summary>
+internal sealed class RoleAdministration(IdentityDbContext db, PermissionCatalog catalog, TimeProvider clock) : HealthOS.Modules.Sdk.Composition.IRoleAdministration
+{
+    public async Task<IReadOnlyList<string>> EnsureRoleAsync(Guid tenantId, HealthOS.Modules.Sdk.Composition.RoleTemplate role, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(role);
+        var problems = role.Permissions
+            .Where(p => catalog.Find(p) is not { Scope: HealthOS.Modules.Sdk.Manifest.PermissionScope.Tenant })
+            .Select(p => $"role '{role.Code}': unknown or non-tenant permission '{p}'")
+            .ToList();
+        if (role.Code == TenantAdminRoleCodes.TenantAdmin)
+        {
+            problems.Add("'tenant-admin' is managed by the platform");
+        }
+
+        if (problems.Count > 0)
+        {
+            return problems;
+        }
+
+        var now = clock.GetUtcNow();
+        var existing = await db.Roles.SingleOrDefaultAsync(r => r.TenantId == tenantId && r.Code == role.Code, cancellationToken).ConfigureAwait(false);
+        if (existing is null)
+        {
+            existing = new Role { Id = Guid.CreateVersion7(now), TenantId = tenantId, Code = role.Code, Name = role.Name, CreatedAt = now };
+            db.Roles.Add(existing);
+        }
+
+        existing.Name = role.Name;
+        var current = await db.RolePermissions.Where(p => p.RoleId == existing.Id).ToListAsync(cancellationToken).ConfigureAwait(false);
+        db.RolePermissions.RemoveRange(current.Where(p => !role.Permissions.Contains(p.Permission)));
+        foreach (var p in role.Permissions.Distinct().Except(current.Select(c => c.Permission)))
+        {
+            db.RolePermissions.Add(new RolePermission { TenantId = tenantId, RoleId = existing.Id, Permission = p });
+        }
+
+        await db.SaveChangesWithAuditAsync(new AuditRecord("core.identity.role.ensured", "role", existing.Id.ToString(),
+            Details: new Dictionary<string, object?> { ["tenantId"] = tenantId, ["code"] = role.Code, ["permissions"] = role.Permissions.ToArray() }), cancellationToken).ConfigureAwait(false);
+        return [];
+    }
+}
+
+internal static class TenantAdminRoleCodes
+{
+    public const string TenantAdmin = "tenant-admin";
+}
+
 /// <summary>Role codes of a user in the active tenant (row-level security limits to that tenant).</summary>
 internal sealed class UserRoles(IdentityDbContext db) : HealthOS.Modules.Sdk.Configuration.IUserRoles
 {

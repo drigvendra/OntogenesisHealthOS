@@ -135,10 +135,16 @@ public sealed class CoreConfigurationModule : HealthOsModule
         services.AddSingleton(sp => new SettingsCatalog(sp.GetRequiredService<IReadOnlyList<IHealthOsModule>>().Select(m => m.Manifest)));
         services.AddScoped<ConfigurationService>();
         services.AddScoped<ISettingsReader, SettingsReader>();
+        services.AddScoped<DefinitionStore>();
+        services.AddSingleton<TemplateCatalog>();
+        services.AddScoped<IConfigurationAdministration, ConfigurationAdministration>();
+        services.AddScoped<OnboardingService>();
     }
 
     public override void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         ConfigurationEndpoints.Map(endpoints);
+        DefinitionEndpoints.Map(endpoints);
+        OnboardingEndpoints.Map(endpoints);
     }
 }

@@ -1,0 +1,22 @@
+{
+  "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
+  "id": "clinicos.core",
+  "kind": "product",
+  "version": "0.1.0",
+  "displayName": "ClinicOS",
+  "requiresCore": "^0.1.0",
+  "dependencies": [{ "id": "core.configuration", "version": "^0.1.0" }],
+  "license": { "productCode": "CLINICOS", "feature": "core" },
+  "capabilities": [],
+  "permissions": [
+    { "code": "clinicos.patients.read", "description": "View patient records" },
+    { "code": "clinicos.patients.register", "description": "Register patients" },
+    { "code": "clinicos.appointments.manage", "description": "Book and manage appointments" },
+    { "code": "clinicos.notes.write", "description": "Write clinical note drafts" },
+    { "code": "clinicos.notes.sign", "description": "Sign clinical notes", "requiresMfa": true },
+    { "code": "clinicos.billing.manage", "description": "Create bills and receipts" }
+  ],
+  "ui": { "routes": [{ "path": "/clinic/patients", "app": "clinic-web", "permission": "clinicos.patients.read" }] },
+  "dataRetention": { "defaultPolicy": "regulated-record", "destructiveUninstall": false },
+  "healthChecks": []
+}

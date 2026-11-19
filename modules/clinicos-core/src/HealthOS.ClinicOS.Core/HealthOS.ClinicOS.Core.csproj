@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>ClinicOS module (skeleton: manifest, licence, permissions; functional scope arrives in M6).</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\module.json" LogicalName="module.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\packages\module-sdk\src\HealthOS.Modules.Sdk\HealthOS.Modules.Sdk.csproj" />
+  </ItemGroup>
+
+</Project>

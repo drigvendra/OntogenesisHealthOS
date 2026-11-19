@@ -103,6 +103,18 @@ public sealed record EnableModuleRequest(bool IncludeDependencies);
 
 public sealed record ActivationProblem(string Title, IReadOnlyList<ActivationReason> Reasons, IReadOnlyList<string> Required);
 
+/// <summary>Module enablement for onboarding: same rules and audit as the HTTP endpoints.</summary>
+internal sealed class ModuleAdministration(IServiceProvider sp) : IModuleAdministration
+{
+    public async Task<EnableResult> EnableAsync(Guid tenantId, string moduleId, bool includeDependencies, CancellationToken cancellationToken)
+    {
+        var (status, problem, changed) = await CoreModulesModule.ChangeAsync(sp, tenantId, moduleId, enable: true, includeDependencies, cancellationToken).ConfigureAwait(false);
+        return status == StatusCodes.Status200OK
+            ? new EnableResult(true, changed, [])
+            : new EnableResult(false, [], problem!.Reasons.Select(r => r.Message).DefaultIfEmpty(problem.Title).Concat(problem.Required.Select(r => "requires " + r)).ToList());
+    }
+}
+
 public sealed class CoreModulesModule : HealthOsModule
 {
     public override void ConfigureServices(IServiceCollection services, IConfiguration configuration)
@@ -110,6 +122,7 @@ public sealed class CoreModulesModule : HealthOsModule
         services.AddModuleDatabase<ModulesDbContext>(Manifest.Id, ModulesDbContext.SchemaName);
         services.AddScoped<ModuleActivationService>();
         services.AddScoped<IModuleActivation>(sp => sp.GetRequiredService<ModuleActivationService>());
+        services.AddScoped<IModuleAdministration, ModuleAdministration>();
     }
 
     public override void MapEndpoints(IEndpointRouteBuilder endpoints)
@@ -144,6 +157,20 @@ public sealed class CoreModulesModule : HealthOsModule
 
     private static async Task<IResult> SetAsync(IServiceProvider sp, Guid tenantId, string moduleId, bool enable, bool includeDependencies, CancellationToken ct)
     {
+        var (status, problem, _) = await ChangeAsync(sp, tenantId, moduleId, enable, includeDependencies, ct);
+        if (status != StatusCodes.Status200OK)
+        {
+            return Results.Json(problem, statusCode: status);
+        }
+
+        return await sp.GetRequiredService<RequestContext>().RunAsTenantAsync(tenantId, async () =>
+            (IResult)TypedResults.Ok((await Fresh(sp).GetAllAsync(ct)).Select(ToDto)));
+    }
+
+    /// <summary>Shared by the HTTP endpoints and onboarding (<see cref="ModuleAdministration"/>).</summary>
+    internal static async Task<(int Status, ActivationProblem? Problem, IReadOnlyList<string> Changed)> ChangeAsync(
+        IServiceProvider sp, Guid tenantId, string moduleId, bool enable, bool includeDependencies, CancellationToken ct)
+    {
         var ctx = sp.GetRequiredService<RequestContext>();
         var db = sp.GetRequiredService<ModulesDbContext>();
         var clock = sp.GetRequiredService<TimeProvider>();
@@ -167,12 +194,12 @@ public sealed class CoreModulesModule : HealthOsModule
                 var plan = TenantActivation.PlanEnable(package, enabled, l => licences.GetValueOrDefault(l, LicenseState.None), moduleId);
                 if (!plan.Allowed)
                 {
-                    return Results.BadRequest(new ActivationProblem("The module cannot be enabled.", plan.Problems, plan.ModulesToEnable));
+                    return (StatusCodes.Status400BadRequest, new ActivationProblem("The module cannot be enabled.", plan.Problems, plan.ModulesToEnable), []);
                 }
 
                 if (plan.ModulesToEnable.Count > 1 && !includeDependencies)
                 {
-                    return Results.Conflict(new ActivationProblem("Other modules must be enabled first.", [], plan.ModulesToEnable));
+                    return (StatusCodes.Status409Conflict, new ActivationProblem("Other modules must be enabled first.", [], plan.ModulesToEnable), []);
                 }
 
                 changes = plan.ModulesToEnable.ToList();
@@ -182,13 +209,13 @@ public sealed class CoreModulesModule : HealthOsModule
             {
                 if (package.FirstOrDefault(m => m.Id == moduleId) is not { } target || target.Kind == ModuleKind.Platform)
                 {
-                    return Results.BadRequest(new ActivationProblem("Only installed, non-platform modules can be disabled.", [], []));
+                    return (StatusCodes.Status400BadRequest, new ActivationProblem("Only installed, non-platform modules can be disabled.", [], []), []);
                 }
 
                 var dependents = TenantActivation.EnabledDependents(package, enabled, moduleId);
                 if (dependents.Count > 0)
                 {
-                    return Results.Conflict(new ActivationProblem("Disable the modules that depend on this one first.", [], dependents));
+                    return (StatusCodes.Status409Conflict, new ActivationProblem("Disable the modules that depend on this one first.", [], dependents), []);
                 }
 
                 changes = [moduleId];
@@ -215,7 +242,7 @@ public sealed class CoreModulesModule : HealthOsModule
             await db.SaveChangesWithAuditAsync(new AuditRecord(action, "module", moduleId,
                 Details: new Dictionary<string, object?> { ["modules"] = changes.ToArray(), ["dataRetained"] = true }), ct);
 
-            return (IResult)TypedResults.Ok((await Fresh(sp).GetAllAsync(ct)).Select(ToDto));
+            return (StatusCodes.Status200OK, (ActivationProblem?)null, (IReadOnlyList<string>)changes);
         });
     }
 

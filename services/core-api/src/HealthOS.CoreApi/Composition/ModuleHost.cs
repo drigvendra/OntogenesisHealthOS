@@ -1,5 +1,4 @@
-using HealthOS.Core.Identity;
-using HealthOS.Core.Tenancy;
+using System.Reflection;
 using HealthOS.Modules.Sdk.Composition;
 using HealthOS.Modules.Sdk.Security;
 
@@ -14,18 +13,25 @@ public static class PlatformInfo
 public static class InstalledModules
 {
     /// <summary>
-    /// Modules compiled into this package. Generated from the bundle profile from M3 onwards;
-    /// hand-maintained until then.
+    /// Modules compiled into this package: every IHealthOsModule in the HealthOS.* assemblies shipped next
+    /// to the host. Which assemblies ship is decided by the bundle profile at build time
+    /// (deploy/bundles/*.props), so the package contents — not code — define the product bundle.
+    /// Test assemblies are never scanned.
     /// </summary>
-    public static IReadOnlyList<IHealthOsModule> Create() =>
-    [
-        new HealthOS.Core.Audit.CoreAuditModule(),
-        new CoreTenancyModule(),
-        new HealthOS.Core.Licensing.CoreLicensingModule(),
-        new HealthOS.Core.Modules.CoreModulesModule(),
-        new HealthOS.Core.Configuration.CoreConfigurationModule(),
-        new CoreIdentityModule(),
-    ];
+    public static IReadOnlyList<IHealthOsModule> Create()
+    {
+        var dir = Path.GetDirectoryName(typeof(InstalledModules).Assembly.Location) ?? AppContext.BaseDirectory;
+        var files = Directory.GetFiles(dir, "HealthOS.*.dll")
+            .Where(f => !Path.GetFileNameWithoutExtension(f).EndsWith("Tests", StringComparison.Ordinal));
+
+        return files
+            .Select(f => Assembly.Load(AssemblyName.GetAssemblyName(f)))
+            .SelectMany(a => a.GetExportedTypes())
+            .Where(t => typeof(IHealthOsModule).IsAssignableFrom(t) && t is { IsClass: true, IsAbstract: false } && t.GetConstructor(Type.EmptyTypes) is not null)
+            .Select(t => (IHealthOsModule)Activator.CreateInstance(t)!)
+            .OrderBy(m => m.Manifest.Id, StringComparer.Ordinal)
+            .ToList();
+    }
 }
 
 public static class ModuleHostExtensions
@@ -63,7 +69,7 @@ public static class ModuleHostExtensions
     {
         foreach (var module in app.Services.GetRequiredService<IReadOnlyList<IHealthOsModule>>())
         {
-            // Every endpoint a module maps carries its owner, which the entitlement gate reads.
+            // Every endpoint a module maps carries its owner, which the module gate reads.
             var group = app.MapGroup(string.Empty).WithMetadata(new ModuleOwner(module.Manifest));
             module.MapEndpoints(group);
         }

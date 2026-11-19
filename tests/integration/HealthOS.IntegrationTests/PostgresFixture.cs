@@ -37,8 +37,19 @@ public sealed class PostgresFixture : IAsyncLifetime
     public string AdminDatabaseConnectionString =>
         new NpgsqlConnectionStringBuilder(AdminConnectionString) { Database = DatabaseName }.ConnectionString;
 
-    public static IReadOnlyList<IHealthOsModule> Modules { get; } =
-        [new HealthOS.Core.Audit.CoreAuditModule(), new CoreTenancyModule(), new HealthOS.Core.Licensing.CoreLicensingModule(), new HealthOS.Core.Modules.CoreModulesModule(), new HealthOS.Core.Configuration.CoreConfigurationModule(), new CoreIdentityModule()];
+    /// <summary>Exactly the modules the host would install (discovered the same way), in dependency order.</summary>
+    public static IReadOnlyList<IHealthOsModule> Modules { get; } = Ordered(HealthOS.CoreApi.Composition.InstalledModules.Create());
+
+    private static IReadOnlyList<IHealthOsModule> Ordered(IReadOnlyList<IHealthOsModule> modules)
+    {
+        var resolution = PackageResolver.Resolve(modules.Select(m => m.Manifest), HealthOS.CoreApi.Composition.PlatformInfo.CoreVersion);
+        if (!resolution.Succeeded)
+        {
+            throw new InvalidOperationException(string.Join("; ", resolution.Issues));
+        }
+
+        return resolution.OrderedModules.Select(o => modules.Single(m => m.Manifest.Id == o.Id)).ToList();
+    }
 
     private string As(string user, string password) =>
         new NpgsqlConnectionStringBuilder(AdminConnectionString)

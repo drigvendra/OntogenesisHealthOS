@@ -1,0 +1,10 @@
+<Project>
+  <!-- Bundle 'dental-clinic': product modules compiled into the core-api package. Platform modules are always included. -->
+  <PropertyGroup>
+    <HealthOSBundleModules>clinicos.core;specialty.dental</HealthOSBundleModules>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../modules/clinicos-core/src/HealthOS.ClinicOS.Core/HealthOS.ClinicOS.Core.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../modules/specialty-dental/src/HealthOS.Specialty.Dental/HealthOS.Specialty.Dental.csproj" />
+  </ItemGroup>
+</Project>

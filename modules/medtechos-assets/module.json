@@ -1,0 +1,19 @@
+{
+  "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
+  "id": "medtechos.assets",
+  "kind": "product",
+  "version": "0.1.0",
+  "displayName": "MedTechOS",
+  "requiresCore": "^0.1.0",
+  "dependencies": [{ "id": "core.configuration", "version": "^0.1.0" }],
+  "license": { "productCode": "MEDTECHOS", "feature": "assets" },
+  "capabilities": [],
+  "permissions": [
+    { "code": "medtechos.assets.read", "description": "View equipment and service history" },
+    { "code": "medtechos.assets.manage", "description": "Register and update equipment" },
+    { "code": "medtechos.service.report", "description": "Write service reports" }
+  ],
+  "ui": { "routes": [{ "path": "/medtech/assets", "app": "medtech-web", "permission": "medtechos.assets.read" }] },
+  "dataRetention": { "defaultPolicy": "regulated-record", "destructiveUninstall": false },
+  "healthChecks": []
+}

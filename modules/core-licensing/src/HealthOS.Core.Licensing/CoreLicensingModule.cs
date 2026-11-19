@@ -74,23 +74,40 @@ public static class EntitlementRules
 /// <summary>Request-scoped, cached per feature. Row-level security restricts reads to the active tenant.</summary>
 internal sealed class Entitlements(LicensingDbContext db, IRequestContext context, TimeProvider clock) : IEntitlements
 {
-    private readonly Dictionary<string, EntitlementStatus> _cache = new(StringComparer.Ordinal);
+    private readonly Dictionary<(Guid, string), EntitlementStatus> _cache = [];
 
     public async Task<EntitlementStatus> GetAsync(string feature, CancellationToken cancellationToken)
     {
-        if (_cache.TryGetValue(feature, out var cached))
-        {
-            return cached;
-        }
-
         if (context.TenantId is not { } tenantId)
         {
             return new EntitlementStatus(feature, EntitlementState.None, null, null);
         }
 
+        if (_cache.TryGetValue((tenantId, feature), out var cached))
+        {
+            return cached;
+        }
+
         var row = await db.Entitlements.AsNoTracking()
             .SingleOrDefaultAsync(e => e.TenantId == tenantId && e.Feature == feature, cancellationToken).ConfigureAwait(false);
-        return _cache[feature] = EntitlementRules.Evaluate(feature, row, clock.GetUtcNow());
+        return _cache[(tenantId, feature)] = EntitlementRules.Evaluate(feature, row, clock.GetUtcNow());
+    }
+}
+
+/// <summary>Onboarding grants (e.g. trials). Never overwrites an existing entitlement.</summary>
+internal sealed class LicenseAdministration(LicensingDbContext db, IRequestContext ctx, TimeProvider clock) : ILicenseAdministration
+{
+    public async Task GrantIfMissingAsync(Guid tenantId, string feature, DateTimeOffset? validTo, string source, CancellationToken cancellationToken)
+    {
+        if (await db.Entitlements.AnyAsync(e => e.TenantId == tenantId && e.Feature == feature, cancellationToken).ConfigureAwait(false))
+        {
+            return;
+        }
+
+        var now = clock.GetUtcNow();
+        db.Entitlements.Add(new Entitlement { TenantId = tenantId, Feature = feature, ValidFrom = now, ValidTo = validTo, Source = source, UpdatedAt = now, UpdatedBy = ctx.UserId });
+        await db.SaveChangesWithAuditAsync(new AuditRecord("core.licensing.entitlement.set", "tenant", tenantId.ToString(),
+            Details: new Dictionary<string, object?> { ["feature"] = feature, ["validTo"] = validTo, ["source"] = source }), cancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -109,6 +126,7 @@ public sealed partial class CoreLicensingModule : HealthOsModule
     {
         services.AddModuleDatabase<LicensingDbContext>(Manifest.Id, LicensingDbContext.SchemaName);
         services.AddScoped<IEntitlements, Entitlements>();
+        services.AddScoped<ILicenseAdministration, LicenseAdministration>();
     }
 
     public override void MapEndpoints(IEndpointRouteBuilder endpoints)

@@ -124,6 +124,39 @@ jobs:
           name: sbom
           path: sbom.cdx.json
 
+  # Each product bundle builds alone and contains only its own product modules (spec §2/§9 M3, M9).
+  bundles:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        bundle: [careops, clinicos, dental-clinic, eye-clinic, medtech]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Build bundle
+        # Lock files describe the default (full) bundle; other bundles restore without them.
+        run: dotnet build services/core-api/src/HealthOS.CoreApi -c Release -p:HealthOSBundle=${{ matrix.bundle }} -p:RestoreLockedMode=false -o out
+      - name: Package contains exactly the bundle's product modules
+        shell: bash
+        run: |
+          expected=$(sed -n 's:.*<HealthOSBundleModules>\(.*\)</HealthOSBundleModules>.*:\1:p' deploy/bundles/${{ matrix.bundle }}.props | tr ';' '\n' | sort)
+          actual=$(cd out && dotnet HealthOS.CoreApi.dll modules list | grep -v '^core\.' | sort)
+          echo "expected: $expected"; echo "actual: $actual"
+          if [ "$expected" != "$actual" ]; then echo "::error title=bundle ${{ matrix.bundle }}::expected [$expected] got [$actual]"; exit 1; fi
+          # No assemblies of other products may ship in this package.
+          declare -A asm=( [careops.quality]=HealthOS.CareOps.Quality [clinicos.core]=HealthOS.ClinicOS.Core
+                           [specialty.dental]=HealthOS.Specialty.Dental [specialty.vision]=HealthOS.Specialty.Vision
+                           [medtechos.assets]=HealthOS.MedTechOS.Assets )
+          for id in "${!asm[@]}"; do
+            if [ -f "out/${asm[$id]}.dll" ] && ! grep -qx "$id" <<< "$expected"; then
+              echo "::error title=bundle ${{ matrix.bundle }}::unexpected assembly ${asm[$id]}.dll"; exit 1
+            fi
+          done
+          echo "::notice title=bundle ${{ matrix.bundle }}::$(echo $actual | tr '\n' ' ')"
+
   # Full local stack (deploy/local/compose.yaml) + real browser login through Keycloak and the BFF.
   e2e:
     runs-on: ubuntu-latest

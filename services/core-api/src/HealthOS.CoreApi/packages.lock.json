@@ -185,6 +185,18 @@
           "Microsoft.IdentityModel.Tokens": "8.19.2"
         }
       },
+      "healthos.careops.quality": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )"
+        }
+      },
+      "healthos.clinicos.core": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )"
+        }
+      },
       "healthos.core.audit": {
         "type": "Project",
         "dependencies": {
@@ -241,6 +253,12 @@
       "healthos.core.tenancy.contracts": {
         "type": "Project"
       },
+      "healthos.medtechos.assets": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )"
+        }
+      },
       "healthos.modules.sdk": {
         "type": "Project",
         "dependencies": {
@@ -256,6 +274,18 @@
           "Microsoft.EntityFrameworkCore": "[10.0.15, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.15, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
+        }
+      },
+      "healthos.specialty.dental": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )"
+        }
+      },
+      "healthos.specialty.vision": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )"
         }
       },
       "Microsoft.EntityFrameworkCore": {

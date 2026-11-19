@@ -1,0 +1,9 @@
+<Project>
+  <!-- Bundle 'medtech': product modules compiled into the core-api package. Platform modules are always included. -->
+  <PropertyGroup>
+    <HealthOSBundleModules>medtechos.assets</HealthOSBundleModules>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../modules/medtechos-assets/src/HealthOS.MedTechOS.Assets/HealthOS.MedTechOS.Assets.csproj" />
+  </ItemGroup>
+</Project>

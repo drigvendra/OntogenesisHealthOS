@@ -151,6 +151,71 @@ public sealed class ConfigurationApiTests(PostgresFixture db) : IAsyncLifetime
         Assert.Equal([2, 1], history.Select(h => h.Version));
     }
 
+    private static object IntakeForm(string extraLabel = "Allergies") => new
+    {
+        code = "general-intake",
+        title = "General intake",
+        fields = new object[]
+        {
+            new { id = "painLevel", label = "Pain (0-10)", type = "Integer", required = true, min = 0, max = 10 },
+            new { id = "allergies", label = extraLabel, type = "TextArea", maxLength = 500, classification = "Phi",
+                  visibleWhen = new { field = "painLevel", op = "isSet" } },
+        },
+    };
+
+    [Fact]
+    public async Task Forms_are_validated_versioned_and_check_submitted_values()
+    {
+        PostgresFixture.SkipIfUnavailable();
+        var (_, t, admin, _) = await SetupAsync("clinic");
+
+        var invalid = await _api.As(admin, t).PostAsJsonAsync("/api/core/configuration/forms",
+            new { code = "Bad", title = "", fields = Array.Empty<object>() }, Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+
+        Assert.Equal(HttpStatusCode.Created, (await _api.As(admin, t).PostAsJsonAsync("/api/core/configuration/forms", IntakeForm(), Ct)).StatusCode);
+        Assert.Equal(HttpStatusCode.Created, (await _api.As(admin, t).PostAsJsonAsync("/api/core/configuration/forms", IntakeForm("Known allergies"), Ct)).StatusCode);
+
+        var list = await (await _api.As(admin, t).GetAsync("/api/core/configuration/forms", Ct)).Read<List<DefinitionSummary>>();
+        Assert.Equal(2, Assert.Single(list, f => f.Code == "general-intake").Version);
+        var v1 = await (await _api.As(admin, t).GetAsync("/api/core/configuration/forms/general-intake?version=1", Ct)).Content.ReadAsStringAsync(Ct);
+        Assert.Contains("\"Allergies\"", v1, StringComparison.Ordinal);
+
+        var check = await _api.As(admin, t).PostAsJsonAsync("/api/core/configuration/forms/general-intake/validate-values",
+            new { values = new Dictionary<string, object> { ["painLevel"] = 12 } }, Ct);
+        Assert.Contains("at most 10", await check.Content.ReadAsStringAsync(Ct), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Workflows_must_be_sound_and_use_known_permissions()
+    {
+        PostgresFixture.SkipIfUnavailable();
+        var (_, t, admin, _) = await SetupAsync("clinic");
+
+        object Workflow(string permission) => new
+        {
+            code = "member-approval",
+            title = "Member approval",
+            initialState = "requested",
+            states = new object[] { new { id = "requested", label = "Requested", slaHours = 48 }, new { id = "approved", label = "Approved", terminal = true } },
+            transitions = new object[] { new { id = "approve", from = "requested", to = "approved", label = "Approve", permission, requiresDifferentActor = true } },
+        };
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await _api.As(admin, t).PostAsJsonAsync("/api/core/configuration/workflows", Workflow("made.up.permission"), Ct)).StatusCode);
+        Assert.Equal(HttpStatusCode.Created, (await _api.As(admin, t).PostAsJsonAsync("/api/core/configuration/workflows", Workflow("core.identity.users.manage"), Ct)).StatusCode);
+    }
+
+    [Fact]
+    public async Task Published_definitions_cannot_be_modified()
+    {
+        PostgresFixture.SkipIfUnavailable();
+        await using var c = new NpgsqlConnection(db.AppConnectionString);
+        await c.OpenAsync(Ct);
+        await PostgresFixture.Exec(c, $"SET ROLE \"{db.Roles.ForModuleSchema(ConfigurationDbContext.SchemaName)}\"");
+        var ex = await Assert.ThrowsAsync<PostgresException>(() => PostgresFixture.Exec(c, "DELETE FROM core_configuration.definition"));
+        Assert.Equal("42501", ex.SqlState);
+    }
+
     [Fact]
     public async Task Snapshots_are_immutable_and_drafts_are_tenant_private()
     {

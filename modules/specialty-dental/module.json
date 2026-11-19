@@ -1,0 +1,18 @@
+{
+  "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
+  "id": "specialty.dental",
+  "kind": "pack",
+  "version": "0.1.0",
+  "displayName": "Dental pack",
+  "requiresCore": "^0.1.0",
+  "dependencies": [{ "id": "clinicos.core", "version": "^0.1.0" }],
+  "license": { "productCode": "DENTAL", "feature": "pack" },
+  "capabilities": [],
+  "permissions": [
+    { "code": "specialty.dental.chart.read", "description": "View dental charts" },
+    { "code": "specialty.dental.chart.write", "description": "Record tooth-level findings and treatments" }
+  ],
+  "ui": { "routes": [{ "path": "/clinic/dental", "app": "clinic-web", "permission": "specialty.dental.chart.read" }] },
+  "dataRetention": { "defaultPolicy": "regulated-record", "destructiveUninstall": false },
+  "healthChecks": []
+}

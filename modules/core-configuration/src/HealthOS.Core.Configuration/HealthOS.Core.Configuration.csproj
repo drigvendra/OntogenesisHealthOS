@@ -15,7 +15,9 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\module.json" LogicalName="module.json" />
     <EmbeddedResource Include="Migrations\*.sql" />
-    <EmbeddedResource Include="Profiles\*.json" />
+    <!-- WithCulture=false: never treat a profile key such as "IN" as a satellite-resource culture. -->
+    <EmbeddedResource Include="Profiles\*.json" WithCulture="false" />
+    <EmbeddedResource Include="Templates\*.json" WithCulture="false" />
   </ItemGroup>
 
   <ItemGroup>

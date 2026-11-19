@@ -1,0 +1,64 @@
+{
+  "code": "pharma-qa",
+  "displayName": "Pharma quality team",
+  "description": "CareOps Quality with GxP-oriented defaults: four-eyes configuration approval, e-signed SOP approval, deviations and CAPA.",
+  "industry": "pharma-qa",
+  "specialty": null,
+  "modules": ["careops.quality"],
+  "roles": [
+    { "code": "qa-manager", "name": "QA manager", "permissions": ["careops.documents.read", "careops.documents.approve", "careops.deviations.manage", "careops.training.read", "core.audit.events.read"] },
+    { "code": "document-author", "name": "Document author", "permissions": ["careops.documents.read", "careops.documents.author", "careops.training.read"] }
+  ],
+  "forms": [
+    {
+      "code": "deviation-report",
+      "title": "Deviation report",
+      "fields": [
+        { "id": "title", "label": "Title", "type": "Text", "required": true, "maxLength": 200 },
+        { "id": "category", "label": "Category", "type": "Choice", "required": true, "options": ["process", "equipment", "material", "documentation", "other"] },
+        { "id": "impact", "label": "Impact", "type": "Choice", "required": true, "options": ["minor", "major", "critical"] },
+        { "id": "description", "label": "What happened", "type": "TextArea", "required": true, "maxLength": 4000 },
+        { "id": "immediateAction", "label": "Immediate action taken", "type": "TextArea", "maxLength": 4000,
+          "requiredWhen": { "field": "impact", "op": "in", "value": ["major", "critical"] } }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "code": "sop-approval",
+      "title": "SOP approval",
+      "initialState": "draft",
+      "states": [
+        { "id": "draft", "label": "Draft" },
+        { "id": "review", "label": "In review", "slaHours": 120 },
+        { "id": "approved", "label": "Approved", "terminal": true },
+        { "id": "withdrawn", "label": "Withdrawn", "terminal": true }
+      ],
+      "transitions": [
+        { "id": "submit", "from": "draft", "to": "review", "label": "Submit for review", "permission": "careops.documents.author" },
+        { "id": "send-back", "from": "review", "to": "draft", "label": "Send back", "permission": "careops.documents.approve" },
+        { "id": "approve", "from": "review", "to": "approved", "label": "Approve", "permission": "careops.documents.approve", "requiresESignature": true, "requiresDifferentActor": true },
+        { "id": "withdraw", "from": "draft", "to": "withdrawn", "label": "Withdraw", "permission": "careops.documents.author" }
+      ]
+    },
+    {
+      "code": "deviation-capa",
+      "title": "Deviation and CAPA",
+      "initialState": "open",
+      "states": [
+        { "id": "open", "label": "Open", "slaHours": 24 },
+        { "id": "investigation", "label": "Investigation", "slaHours": 720 },
+        { "id": "capa", "label": "CAPA in progress" },
+        { "id": "effectiveness-check", "label": "Effectiveness check" },
+        { "id": "closed", "label": "Closed", "terminal": true }
+      ],
+      "transitions": [
+        { "id": "investigate", "from": "open", "to": "investigation", "label": "Start investigation", "permission": "careops.deviations.manage" },
+        { "id": "define-capa", "from": "investigation", "to": "capa", "label": "Define CAPA", "permission": "careops.deviations.manage" },
+        { "id": "check", "from": "capa", "to": "effectiveness-check", "label": "Check effectiveness", "permission": "careops.deviations.manage" },
+        { "id": "close", "from": "effectiveness-check", "to": "closed", "label": "Close", "permission": "careops.documents.approve", "requiresESignature": true, "requiresDifferentActor": true },
+        { "id": "reopen-capa", "from": "effectiveness-check", "to": "capa", "label": "Not effective: revise CAPA", "permission": "careops.deviations.manage" }
+      ]
+    }
+  ]
+}

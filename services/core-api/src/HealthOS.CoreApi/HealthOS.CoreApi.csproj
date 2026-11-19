@@ -10,6 +10,12 @@
     <InternalsVisibleTo Include="HealthOS.CoreApi.Tests" />
   </ItemGroup>
 
+  <!-- Product bundle: which product modules are compiled into this package (deploy/bundles/*.props). -->
+  <PropertyGroup>
+    <HealthOSBundle Condition="'$(HealthOSBundle)' == ''">full</HealthOSBundle>
+  </PropertyGroup>
+  <Import Project="..\..\..\..\deploy\bundles\$(HealthOSBundle).props" />
+
   <!--
     Composition root. Only this host may reference module internal projects.
     In M3, bundle build profiles (deploy/bundles/*.json) will select which modules are referenced here.

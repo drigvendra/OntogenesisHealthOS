@@ -1,0 +1,21 @@
+{
+  "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
+  "id": "careops.quality",
+  "kind": "product",
+  "version": "0.1.0",
+  "displayName": "CareOps Quality",
+  "requiresCore": "^0.1.0",
+  "dependencies": [{ "id": "core.configuration", "version": "^0.1.0" }],
+  "license": { "productCode": "CAREOPS", "feature": "quality" },
+  "capabilities": [],
+  "permissions": [
+    { "code": "careops.documents.read", "description": "Read controlled documents" },
+    { "code": "careops.documents.author", "description": "Draft and revise controlled documents" },
+    { "code": "careops.documents.approve", "description": "Approve controlled documents", "requiresESignature": true, "requiresMfa": true },
+    { "code": "careops.deviations.manage", "description": "Record deviations and CAPA" },
+    { "code": "careops.training.read", "description": "View training assignments" }
+  ],
+  "ui": { "routes": [{ "path": "/quality/documents", "app": "quality-web", "permission": "careops.documents.read" }] },
+  "dataRetention": { "defaultPolicy": "regulated-record", "destructiveUninstall": false },
+  "healthChecks": []
+}

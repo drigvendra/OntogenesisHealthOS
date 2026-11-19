@@ -1,0 +1,48 @@
+{
+  "code": "dental-clinic",
+  "displayName": "Dental clinic",
+  "description": "ClinicOS with the Dental pack: tooth-level charting, treatment stages and recall.",
+  "industry": "clinic",
+  "specialty": "dental",
+  "modules": ["clinicos.core", "specialty.dental"],
+  "roles": [
+    { "code": "dentist", "name": "Dentist", "permissions": ["clinicos.patients.read", "clinicos.appointments.manage", "clinicos.notes.write", "clinicos.notes.sign", "specialty.dental.chart.read", "specialty.dental.chart.write"] },
+    { "code": "dental-assistant", "name": "Dental assistant", "permissions": ["clinicos.patients.read", "specialty.dental.chart.read"] },
+    { "code": "front-desk", "name": "Front desk", "permissions": ["clinicos.patients.read", "clinicos.patients.register", "clinicos.appointments.manage", "clinicos.billing.manage"] }
+  ],
+  "forms": [
+    {
+      "code": "dental-finding",
+      "title": "Tooth finding",
+      "fields": [
+        { "id": "tooth", "label": "Tooth (FDI notation)", "type": "Integer", "required": true, "min": 11, "max": 85 },
+        { "id": "surface", "label": "Surfaces", "type": "MultiChoice", "options": ["mesial", "distal", "occlusal", "buccal", "lingual"] },
+        { "id": "finding", "label": "Finding", "type": "Choice", "required": true, "options": ["caries", "fracture", "missing", "restoration", "other"], "classification": "Phi" },
+        { "id": "findingNote", "label": "Describe the finding", "type": "Text", "maxLength": 300, "classification": "Phi",
+          "visibleWhen": { "field": "finding", "op": "equals", "value": "other" },
+          "requiredWhen": { "field": "finding", "op": "equals", "value": "other" } },
+        { "id": "recallMonths", "label": "Recall in (months)", "type": "Integer", "min": 1, "max": 24 }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "code": "treatment-plan",
+      "title": "Dental treatment plan",
+      "initialState": "proposed",
+      "states": [
+        { "id": "proposed", "label": "Proposed" },
+        { "id": "accepted", "label": "Accepted by patient" },
+        { "id": "in-progress", "label": "In progress" },
+        { "id": "completed", "label": "Completed", "terminal": true },
+        { "id": "declined", "label": "Declined", "terminal": true }
+      ],
+      "transitions": [
+        { "id": "accept", "from": "proposed", "to": "accepted", "label": "Patient accepts", "permission": "specialty.dental.chart.write" },
+        { "id": "decline", "from": "proposed", "to": "declined", "label": "Patient declines", "permission": "specialty.dental.chart.write" },
+        { "id": "start", "from": "accepted", "to": "in-progress", "label": "Start treatment", "permission": "specialty.dental.chart.write" },
+        { "id": "complete", "from": "in-progress", "to": "completed", "label": "Complete", "permission": "clinicos.notes.sign" }
+      ]
+    }
+  ]
+}

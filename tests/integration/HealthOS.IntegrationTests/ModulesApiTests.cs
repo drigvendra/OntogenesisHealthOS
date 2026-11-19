@@ -132,7 +132,8 @@ public sealed class ModulesApiTests(PostgresFixture db) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, (await _api.As(admin, t).GetAsync("/api/test/licensed/ping", Ct)).StatusCode);
 
         var events = await (await _api.As(admin, t).GetAsync("/api/core/audit/events", Ct)).Read<List<AuditEventDto>>();
-        Assert.Contains(events, e => e.Action == "core.modules.module.disabled" && e.Details.Contains("\"dataRetained\":true", StringComparison.Ordinal));
+        Assert.Contains(events, e => e.Action == "core.modules.module.disabled" &&
+            System.Text.Json.JsonDocument.Parse(e.Details).RootElement.GetProperty("dataRetained").GetBoolean());
     }
 
     [Fact]

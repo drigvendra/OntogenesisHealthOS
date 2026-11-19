@@ -48,6 +48,7 @@ public sealed partial class CoreIdentityModule : HealthOsModule
         services.AddScoped<IOperatorAdministration>(sp => sp.GetRequiredService<AccessControl>());
         services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
         services.AddScoped<HealthOS.Modules.Sdk.Configuration.IUserRoles, UserRoles>();
+        services.AddScoped<HealthOS.Modules.Sdk.Composition.IRoleAdministration, RoleAdministration>();
     }
 
     public override void MapEndpoints(IEndpointRouteBuilder endpoints)

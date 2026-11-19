@@ -602,6 +602,18 @@
           "xunit.v3.runner.common": "[4.0.3]"
         }
       },
+      "healthos.careops.quality": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )"
+        }
+      },
+      "healthos.clinicos.core": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )"
+        }
+      },
       "healthos.core.audit": {
         "type": "Project",
         "dependencies": {
@@ -661,14 +673,19 @@
       "healthos.coreapi": {
         "type": "Project",
         "dependencies": {
+          "HealthOS.CareOps.Quality": "[1.0.0, )",
+          "HealthOS.ClinicOS.Core": "[1.0.0, )",
           "HealthOS.Core.Audit": "[1.0.0, )",
           "HealthOS.Core.Configuration": "[1.0.0, )",
           "HealthOS.Core.Identity": "[1.0.0, )",
           "HealthOS.Core.Licensing": "[1.0.0, )",
           "HealthOS.Core.Modules": "[1.0.0, )",
           "HealthOS.Core.Tenancy": "[1.0.0, )",
+          "HealthOS.MedTechOS.Assets": "[1.0.0, )",
           "HealthOS.Modules.Sdk": "[1.0.0, )",
           "HealthOS.Platform.Data": "[1.0.0, )",
+          "HealthOS.Specialty.Dental": "[1.0.0, )",
+          "HealthOS.Specialty.Vision": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.OpenIdConnect": "[10.0.15, )",
           "Npgsql": "[10.0.3, )",
           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.21.0, )",
@@ -676,6 +693,12 @@
           "OpenTelemetry.Instrumentation.AspNetCore": "[1.21.0, )",
           "OpenTelemetry.Instrumentation.Http": "[1.21.0, )",
           "OpenTelemetry.Instrumentation.Runtime": "[1.21.0, )"
+        }
+      },
+      "healthos.medtechos.assets": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )"
         }
       },
       "healthos.modules.sdk": {
@@ -693,6 +716,18 @@
           "Microsoft.EntityFrameworkCore": "[10.0.15, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.15, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
+        }
+      },
+      "healthos.specialty.dental": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )"
+        }
+      },
+      "healthos.specialty.vision": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )"
         }
       },
       "Microsoft.AspNetCore.Authentication.OpenIdConnect": {

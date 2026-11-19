@@ -5,14 +5,20 @@
   "version": "0.1.0",
   "displayName": "Configuration Studio",
   "requiresCore": "^0.1.0",
-  "dependencies": [{ "id": "core.audit", "version": "^0.1.0" }],
+  "dependencies": [
+    { "id": "core.audit", "version": "^0.1.0" },
+    { "id": "core.licensing", "version": "^0.1.0" },
+    { "id": "core.modules", "version": "^0.1.0" },
+    { "id": "core.identity", "version": "^0.1.0" }
+  ],
   "capabilities": ["settings", "profiles", "drafts", "snapshots", "rollback"],
   "permissions": [
     { "code": "core.configuration.settings.read", "description": "View configuration, drafts and history" },
     { "code": "core.configuration.drafts.edit", "description": "Create configuration drafts" },
     { "code": "core.configuration.drafts.approve", "description": "Approve configuration drafts", "requiresMfa": true },
     { "code": "core.configuration.snapshots.publish", "description": "Publish approved drafts and roll back", "requiresMfa": true },
-    { "code": "core.configuration.profile.manage", "description": "Set a tenant's country, industry and specialty profile", "scope": "platform" }
+    { "code": "core.configuration.profile.manage", "description": "Set a tenant's country, industry and specialty profile", "scope": "platform" },
+    { "code": "core.configuration.onboarding.apply", "description": "Preview and apply onboarding templates to a tenant", "scope": "platform" }
   ],
   "settings": [
     {

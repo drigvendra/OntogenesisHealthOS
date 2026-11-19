@@ -49,8 +49,22 @@ public sealed class ConfigSnapshot
     public int? RolledBackTo { get; set; }
 }
 
+public sealed class DefinitionDocument
+{
+    public Guid TenantId { get; set; }
+    public required string Kind { get; set; }
+    public required string Code { get; set; }
+    public int Version { get; set; }
+    public required string Document { get; set; }
+    public string Source { get; set; } = "tenant";
+    public DateTimeOffset CreatedAt { get; set; }
+    public Guid? CreatedBy { get; set; }
+}
+
 public sealed class ConfigurationDbContext(DbContextOptions<ConfigurationDbContext> options) : ModuleDbContext(options)
 {
+    public DbSet<DefinitionDocument> Definitions => Set<DefinitionDocument>();
+
     public const string SchemaName = "core_configuration";
 
     protected override string Schema => SchemaName;
@@ -86,6 +100,19 @@ public sealed class ConfigurationDbContext(DbContextOptions<ConfigurationDbConte
             e.Property(x => x.CreatedBy).HasColumnName("created_by");
             e.Property(x => x.ApprovedAt).HasColumnName("approved_at");
             e.Property(x => x.ApprovedBy).HasColumnName("approved_by");
+        });
+        modelBuilder.Entity<DefinitionDocument>(e =>
+        {
+            e.ToTable("definition");
+            e.HasKey(x => new { x.TenantId, x.Kind, x.Code, x.Version });
+            e.Property(x => x.TenantId).HasColumnName("tenant_id");
+            e.Property(x => x.Kind).HasColumnName("kind");
+            e.Property(x => x.Code).HasColumnName("code");
+            e.Property(x => x.Version).HasColumnName("version");
+            e.Property(x => x.Document).HasColumnName("document").HasColumnType("jsonb");
+            e.Property(x => x.Source).HasColumnName("source");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.Property(x => x.CreatedBy).HasColumnName("created_by");
         });
         modelBuilder.Entity<ConfigSnapshot>(e =>
         {

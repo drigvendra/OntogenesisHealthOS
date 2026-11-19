@@ -1,0 +1,9 @@
+<Project>
+  <!-- Bundle 'careops': product modules compiled into the core-api package. Platform modules are always included. -->
+  <PropertyGroup>
+    <HealthOSBundleModules>careops.quality</HealthOSBundleModules>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../modules/careops-quality/src/HealthOS.CareOps.Quality/HealthOS.CareOps.Quality.csproj" />
+  </ItemGroup>
+</Project>

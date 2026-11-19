@@ -1,0 +1,10 @@
+<Project>
+  <!-- Bundle 'eye-clinic': product modules compiled into the core-api package. Platform modules are always included. -->
+  <PropertyGroup>
+    <HealthOSBundleModules>clinicos.core;specialty.vision</HealthOSBundleModules>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../modules/clinicos-core/src/HealthOS.ClinicOS.Core/HealthOS.ClinicOS.Core.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../modules/specialty-vision/src/HealthOS.Specialty.Vision/HealthOS.Specialty.Vision.csproj" />
+  </ItemGroup>
+</Project>

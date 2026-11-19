@@ -1,0 +1,43 @@
+{
+  "code": "eye-clinic",
+  "displayName": "Eye clinic",
+  "description": "ClinicOS with the Vision pack: laterality-aware examinations, visual acuity, IOP, refraction.",
+  "industry": "clinic",
+  "specialty": "vision",
+  "modules": ["clinicos.core", "specialty.vision"],
+  "roles": [
+    { "code": "ophthalmologist", "name": "Ophthalmologist", "permissions": ["clinicos.patients.read", "clinicos.appointments.manage", "clinicos.notes.write", "clinicos.notes.sign", "specialty.vision.exams.read", "specialty.vision.exams.write"] },
+    { "code": "optometrist", "name": "Optometrist", "permissions": ["clinicos.patients.read", "specialty.vision.exams.read", "specialty.vision.exams.write"] },
+    { "code": "front-desk", "name": "Front desk", "permissions": ["clinicos.patients.read", "clinicos.patients.register", "clinicos.appointments.manage", "clinicos.billing.manage"] }
+  ],
+  "forms": [
+    {
+      "code": "eye-exam",
+      "title": "Eye examination",
+      "fields": [
+        { "id": "eye", "label": "Eye", "type": "Choice", "required": true, "options": ["right (OD)", "left (OS)", "both (OU)"] },
+        { "id": "visualAcuity", "label": "Visual acuity (e.g. 6/6)", "type": "Text", "maxLength": 20, "classification": "Phi" },
+        { "id": "iop", "label": "Intraocular pressure", "type": "Decimal", "unit": "mmHg", "min": 0, "max": 80, "classification": "Phi" },
+        { "id": "iopMethod", "label": "IOP method", "type": "Choice", "options": ["Goldmann", "non-contact", "rebound"],
+          "visibleWhen": { "field": "iop", "op": "isSet" }, "requiredWhen": { "field": "iop", "op": "isSet" } },
+        { "id": "dilated", "label": "Pupils dilated", "type": "Boolean" }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "code": "procedure-follow-up",
+      "title": "Procedure follow-up",
+      "initialState": "scheduled",
+      "states": [
+        { "id": "scheduled", "label": "Follow-up scheduled" },
+        { "id": "reviewed", "label": "Reviewed", "slaHours": 168 },
+        { "id": "closed", "label": "Closed", "terminal": true }
+      ],
+      "transitions": [
+        { "id": "review", "from": "scheduled", "to": "reviewed", "label": "Record review", "permission": "specialty.vision.exams.write" },
+        { "id": "close", "from": "reviewed", "to": "closed", "label": "Close", "permission": "clinicos.notes.sign" }
+      ]
+    }
+  ]
+}
