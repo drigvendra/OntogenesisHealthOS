@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router";
 import { post, put, type Entitlement, type LicensableFeature, type TenantSummary } from "../api";
 import { QueryState, SubmitError, useApi, useSubmit } from "../common";
 import { EntitlementTable } from "./Licenses";
+import { OnboardingWizard } from "./Onboarding";
 
 const TENANTS = "/api/platform/tenants";
 
@@ -69,6 +70,7 @@ export function PlatformTenantPage() {
         </p>
         <SubmitError error={status.error} />
       </Card>
+      <OnboardingWizard tenantId={tenant.id} />
       <AppointAdmin tenantId={tenant.id} />
       <Card title="Entitlements">
         <QueryState error={ents.error} isPending={ents.isPending} label="entitlements" />

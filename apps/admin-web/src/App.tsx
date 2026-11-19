@@ -9,6 +9,8 @@ import { MembersPage } from "./pages/Members";
 import { LicensesPage } from "./pages/Licenses";
 import { AuditPage } from "./pages/Audit";
 import { PlatformTenantsPage, PlatformTenantPage } from "./pages/PlatformTenants";
+import { ModulesPage } from "./pages/Modules";
+import { ConfigurationPage } from "./pages/Configuration";
 
 export function App() {
   const session = useQuery({ queryKey: ["session"], queryFn: fetchSession, retry: false });
@@ -63,6 +65,8 @@ function SignedIn({ user }: { user: CurrentUser }) {
     nav.push(
       { label: "Organization", href: "/structure" },
       { label: "Members & roles", href: "/members" },
+      { label: "Modules", href: "/modules" },
+      { label: "Configuration", href: "/configuration" },
       { label: "Licenses", href: "/licenses" },
       { label: "Audit log", href: "/audit" },
     );
@@ -99,6 +103,8 @@ function SignedIn({ user }: { user: CurrentUser }) {
           <>
             <Route path="/structure" element={<StructurePage />} />
             <Route path="/members" element={<MembersPage />} />
+            <Route path="/modules" element={<ModulesPage />} />
+            <Route path="/configuration" element={<ConfigurationPage />} />
             <Route path="/licenses" element={<LicensesPage />} />
             <Route path="/audit" element={<AuditPage scope="tenant" />} />
           </>

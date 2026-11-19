@@ -24,11 +24,27 @@ export interface AuditEvent { seq: number; occurredAt: string; actorUserId: stri
 export interface AuditVerification { intact: boolean; firstInvalidSeq: number | null }
 export interface NavigationItem { moduleId: string; moduleName: string; app: string; path: string; readOnly: boolean }
 
+export interface ActivationReason { code: string; message: string }
+export interface ModuleStatus { id: string; displayName: string; kind: string; version: string; enabled: boolean; state: "Active" | "Inactive" | "ReadOnly"; reasons: ActivationReason[]; licenseFeature: string | null }
+export interface ActivationProblem { title: string; reasons: ActivationReason[]; required: string[] }
+export interface TraceStep { scope: string; scopeKey: string; effect: string; value: string | null }
+export interface ResolvedSetting { key: string; value: unknown; source: string; sourceKey: string; lockedAt: string | null; trace: TraceStep[]; problems: string[] }
+export interface SettingDefinition { key: string; type: string; description: string; default: unknown; min?: number; max?: number; options?: string[]; allowedScopes: string[]; unit?: string }
+export interface SettingEntry { key: string; scope: string; scopeKey: string; value: unknown }
+export interface Draft { id: string; baseVersion: number; summary: string; status: string; entries: SettingEntry[]; createdAt: string; createdBy: string; approvedBy: string | null }
+export interface Snapshot { version: number; createdAt: string; createdBy: string; draftId: string | null; rolledBackTo: number | null; entryCount: number }
+export interface DefinitionSummary { code: string; title: string; version: number; source: string; createdAt: string }
+export interface OnboardingTemplate { code: string; displayName: string; description: string; industry: string; specialty: string | null; modules: string[]; roles: string[]; forms: number; workflows: number }
+export interface OnboardingStep { kind: string; item: string; status: string; detail: string | null }
+export interface OnboardingResult { template: string; succeeded: boolean; steps: OnboardingStep[]; problems: string[] }
+export interface ConfigProfile { scope: string; key: string; displayName: string; note: string }
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
     public readonly fieldErrors: Record<string, string[]> = {},
+    public readonly body: unknown = undefined,
   ) {
     super(message);
   }
@@ -45,14 +61,19 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   let title = defaultMessage(res.status);
   let errors: Record<string, string[]> = {};
+  let body: unknown;
   try {
-    const body = (await res.json()) as { title?: string; errors?: Record<string, string[]> };
-    title = body.title ?? title;
-    errors = body.errors ?? {};
+    body = await res.json();
+    const b = body as { title?: string; errors?: Record<string, string[]>; problems?: unknown[] };
+    title = b.title ?? title;
+    errors = b.errors ?? {};
+    if (Array.isArray(b.problems) && b.problems.length > 0) {
+      title += " " + b.problems.map((p) => (typeof p === "string" ? p : (p as { problem?: string; key?: string }).key + ": " + (p as { problem?: string }).problem)).join("; ");
+    }
   } catch {
     // empty or non-JSON body
   }
-  throw new ApiError(res.status, title, errors);
+  throw new ApiError(res.status, title, errors, body);
 }
 
 function defaultMessage(status: number): string {

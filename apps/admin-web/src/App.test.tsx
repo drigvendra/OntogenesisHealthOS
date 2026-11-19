@@ -131,6 +131,57 @@ describe("App", () => {
     expect(await screen.findByText(/multi-factor authentication/i, { selector: "p" })).toBeInTheDocument();
   });
 
+  it("offers to enable required modules when a pack needs its parent", async () => {
+    window.history.pushState({}, "", "/modules");
+    const calls: string[] = [];
+    mockApi({
+      "/api/core/identity/me": () => ({ status: 200, body: user({ activeTenantId: "t-1", multiFactorAuthenticated: true }) }),
+      "/api/core/identity/me/tenants": () => ({ status: 200, body: [tenant] }),
+      "/api/core/modules": () => ({ status: 200, body: [
+        { id: "clinicos.core", displayName: "ClinicOS", kind: "product", version: "0.1.0", enabled: false, state: "Inactive", reasons: [{ code: "NOT_ENABLED", message: "Not enabled for this tenant." }], licenseFeature: "CLINICOS:core" },
+        { id: "specialty.dental", displayName: "Dental pack", kind: "pack", version: "0.1.0", enabled: false, state: "Inactive", reasons: [], licenseFeature: "DENTAL:pack" },
+      ] }),
+      "/api/core/modules/specialty.dental/enable": (init) => {
+        calls.push(String(init?.body));
+        return calls.length === 1
+          ? { status: 409, body: { title: "Other modules must be enabled first.", reasons: [], required: ["clinicos.core", "specialty.dental"] } }
+          : { status: 200, body: [] };
+      },
+    });
+    const { container } = renderApp();
+
+    expect(await screen.findByText("Not enabled for this tenant.")).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button", { name: "Enable" })[1]!);
+    expect(await screen.findByText(/also enables: clinicos.core/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Enable all" }));
+    await waitFor(() => expect(calls[1]).toContain('"includeDependencies":true'));
+    await expectNoAxeViolations(container);
+  });
+
+  it("shows onboarding preview problems before anything is applied", async () => {
+    window.history.pushState({}, "", "/platform/tenants/t-9");
+    mockApi({
+      "/api/core/identity/me": () => ({ status: 200, body: user({ isPlatformOperator: true, multiFactorAuthenticated: true }) }),
+      "/api/core/identity/me/tenants": () => ({ status: 200, body: [] }),
+      "/api/platform/tenants": () => ({ status: 200, body: [{ ...tenant, id: "t-9" }] }),
+      "/api/platform/tenants/t-9/entitlements": () => ({ status: 200, body: [] }),
+      "/api/platform/licensing/features": () => ({ status: 200, body: [] }),
+      "/api/platform/configuration/profiles": () => ({ status: 200, body: [{ scope: "Country", key: "IN", displayName: "India", note: "" }] }),
+      "/api/platform/onboarding/templates": () => ({ status: 200, body: [
+        { code: "dental-clinic", displayName: "Dental clinic", description: "Dental.", industry: "clinic", specialty: "dental", modules: ["clinicos.core", "specialty.dental"], roles: ["dentist"], forms: 1, workflows: 1 },
+      ] }),
+      "/api/platform/tenants/t-9/onboarding/preview": () => ({ status: 200, body: {
+        template: "dental-clinic", succeeded: false, problems: ["Module 'specialty.dental' is not installed in this deployment (bundle)."],
+        steps: [{ kind: "module", item: "clinicos.core", status: "planned", detail: null }],
+      } }),
+    });
+    renderApp();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Preview" }));
+    expect(await screen.findByText(/not installed in this deployment/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apply" })).toBeDisabled();
+  });
+
   it("shows an error state when the API is unavailable", async () => {
     mockApi({ "/api/core/identity/me": () => ({ status: 503 }) });
     renderApp();
