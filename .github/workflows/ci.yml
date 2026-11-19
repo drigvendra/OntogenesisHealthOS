@@ -177,6 +177,7 @@ jobs:
           export ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5080
           export Database__ConnectionString="Host=localhost;Port=5433;Database=healthos;Username=hos_app;Password=$HOS_APP_PASSWORD"
           export Authentication__Oidc__ClientSecret="$HOS_BFF_CLIENT_SECRET"
+          export Authentication__Oidc__PublicOrigin="http://localhost:5173"
           nohup dotnet $CORE_API_DLL > core-api.log 2>&1 &
           nohup pnpm --filter @healthos/admin-web dev > admin-web.log 2>&1 &
           for i in $(seq 60); do curl -fs http://localhost:5080/health/ready >/dev/null && break; sleep 2; done

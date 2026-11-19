@@ -22,6 +22,13 @@ public sealed class OidcSettings
 
     /// <summary>Only false for local development against http://localhost Keycloak.</summary>
     public bool RequireHttpsMetadata { get; set; } = true;
+
+    /// <summary>
+    /// Origin the browser uses (e.g. https://admin.example.com). When set, OIDC callback URIs are built from
+    /// it instead of the request Host header — needed behind proxies and load balancers.
+    /// </summary>
+    [Url]
+    public string? PublicOrigin { get; set; }
 }
 
 /// <summary>
@@ -89,6 +96,23 @@ public static class BffAuthentication
                 o.ClaimActions.Remove("acr");
                 o.TokenValidationParameters.NameClaimType = "name";
                 o.Events.OnTicketReceived = ProvisionUserAsync;
+                if (!string.IsNullOrWhiteSpace(s.PublicOrigin))
+                {
+                    var origin = s.PublicOrigin.TrimEnd('/');
+                    o.Events.OnRedirectToIdentityProvider = ctx =>
+                    {
+                        var uri = origin + o.CallbackPath;
+                        ctx.ProtocolMessage.RedirectUri = uri;
+                        // The same URI must be presented again when redeeming the authorization code.
+                        ctx.Properties.Items[OpenIdConnectDefaults.RedirectUriForCodePropertiesKey] = uri;
+                        return Task.CompletedTask;
+                    };
+                    o.Events.OnRedirectToIdentityProviderForSignOut = ctx =>
+                    {
+                        ctx.ProtocolMessage.PostLogoutRedirectUri = origin + o.SignedOutCallbackPath;
+                        return Task.CompletedTask;
+                    };
+                }
             });
 
         return services;
