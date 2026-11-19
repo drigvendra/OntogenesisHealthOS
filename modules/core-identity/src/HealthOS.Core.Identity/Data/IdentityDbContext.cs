@@ -156,6 +156,19 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
             e.Property(x => x.Permission).HasColumnName("permission");
         });
 
+        // Relationships mirror the database foreign keys so EF orders inserts correctly within one
+        // SaveChanges (e.g. membership and role before the role assignment that references both).
+        modelBuilder.Entity<TenantMembership>().HasOne<UserAccount>().WithMany().HasForeignKey(m => m.UserId);
+        modelBuilder.Entity<Role>().HasAlternateKey(r => new { r.TenantId, r.Id });
+        modelBuilder.Entity<RolePermission>().HasOne<Role>().WithMany()
+            .HasForeignKey(p => new { p.TenantId, p.RoleId }).HasPrincipalKey(r => new { r.TenantId, r.Id });
+        modelBuilder.Entity<RoleAssignment>().HasOne<TenantMembership>().WithMany()
+            .HasForeignKey(a => new { a.TenantId, a.UserId });
+        modelBuilder.Entity<RoleAssignment>().HasOne<Role>().WithMany()
+            .HasForeignKey(a => new { a.TenantId, a.RoleId }).HasPrincipalKey(r => new { r.TenantId, r.Id });
+        modelBuilder.Entity<PlatformOperator>().HasOne<UserAccount>().WithMany().HasForeignKey(o => o.UserId);
+        modelBuilder.Entity<BreakGlassGrant>().HasOne<UserAccount>().WithMany().HasForeignKey(g => g.UserId);
+
         modelBuilder.Entity<BreakGlassGrant>(e =>
         {
             e.ToTable("break_glass_grant");

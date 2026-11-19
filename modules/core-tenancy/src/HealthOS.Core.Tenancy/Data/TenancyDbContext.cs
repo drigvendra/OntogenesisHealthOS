@@ -93,6 +93,15 @@ public sealed class TenancyDbContext(DbContextOptions<TenancyDbContext> options)
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
         });
 
+        // Relationships mirror the database foreign keys (tenant-scoped composite keys) so EF orders inserts.
+        modelBuilder.Entity<Organization>().HasOne<Tenant>().WithMany().HasForeignKey(o => o.TenantId);
+        modelBuilder.Entity<Organization>().HasAlternateKey(o => new { o.TenantId, o.Id });
+        modelBuilder.Entity<Site>().HasAlternateKey(s => new { s.TenantId, s.Id });
+        modelBuilder.Entity<Site>().HasOne<Organization>().WithMany()
+            .HasForeignKey(s => new { s.TenantId, s.OrganizationId }).HasPrincipalKey(o => new { o.TenantId, o.Id });
+        modelBuilder.Entity<Department>().HasOne<Site>().WithMany()
+            .HasForeignKey(d => new { d.TenantId, d.SiteId }).HasPrincipalKey(s => new { s.TenantId, s.Id });
+
         modelBuilder.Entity<Department>(e =>
         {
             e.ToTable("department");
