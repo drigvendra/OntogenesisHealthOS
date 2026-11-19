@@ -15,6 +15,46 @@
   "otpPolicyDigits": 6,
   "otpPolicyPeriod": 30,
   "passwordPolicy": "length(12)",
+  "browserFlow": "healthos browser",
+  "authenticationFlows": [
+    {
+      "alias": "healthos browser",
+      "description": "Standard browser login; each step declares its authentication method reference (amr) so HealthOS can see MFA.",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        { "authenticator": "auth-cookie", "authenticatorFlow": false, "requirement": "ALTERNATIVE", "priority": 10, "userSetupAllowed": false },
+        { "authenticatorFlow": true, "requirement": "ALTERNATIVE", "priority": 20, "flowAlias": "healthos browser forms", "userSetupAllowed": false }
+      ]
+    },
+    {
+      "alias": "healthos browser forms",
+      "description": "Username/password, then a one-time code if the user has an authenticator.",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        { "authenticator": "auth-username-password-form", "authenticatorConfig": "amr pwd", "authenticatorFlow": false, "requirement": "REQUIRED", "priority": 10, "userSetupAllowed": false },
+        { "authenticatorFlow": true, "requirement": "CONDITIONAL", "priority": 20, "flowAlias": "healthos browser otp", "userSetupAllowed": false }
+      ]
+    },
+    {
+      "alias": "healthos browser otp",
+      "description": "One-time code when configured.",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        { "authenticator": "conditional-user-configured", "authenticatorFlow": false, "requirement": "REQUIRED", "priority": 10, "userSetupAllowed": false },
+        { "authenticator": "auth-otp-form", "authenticatorConfig": "amr otp", "authenticatorFlow": false, "requirement": "REQUIRED", "priority": 20, "userSetupAllowed": false }
+      ]
+    }
+  ],
+  "authenticatorConfig": [
+    { "alias": "amr pwd", "config": { "default.reference.value": "pwd", "default.reference.maxAge": "43200" } },
+    { "alias": "amr otp", "config": { "default.reference.value": "otp", "default.reference.maxAge": "43200" } }
+  ],
   "clients": [
     {
       "clientId": "healthos-bff",
