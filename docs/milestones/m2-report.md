@@ -36,11 +36,13 @@ Decision record: [ADR-0006 SQL-first migrations and database-enforced security](
 ## Tests executed (CI)
 - .NET: **95 / 95 passed, 0 skipped** (run 44474557153): Module SDK 30, architecture 4, core-api host 21, integration 40 (database isolation 10, tenant isolation 8, access API 7, audit 6, licensing 5, break-glass 4).
 - ai-service, web (7 tests incl. axe), security (gitleaks, SBOM): passed.
-- e2e browser login: see "Known gaps" until green.
+- e2e (run 44475969180): compose stack healthy, `db bootstrap` + `db migrate` twice, real Chromium login through Keycloak and the BFF, HttpOnly session, user provisioned (`core_identity.user_account` rows = 1): **2 / 2 passed**.
 
 ## Bugs found by the new tests and fixed
 1. EF Core did not know the tenant-scoped foreign keys → insert order wrong → tenant-admin appointment returned 500. Relationships now modelled.
 2. Dev proxy rewrote the Host header → OIDC callback returned to the API origin. Proxy fixed; `Authentication:Oidc:PublicOrigin` added for proxies/load balancers.
+3. Anonymous API calls were redirected to Keycloak instead of returning 401 (would break the SPA). Challenge now handled by the cookie scheme.
+4. core-api loaded no configuration when started from another working directory. Content root pinned.
 
 ## Security notes
 - Platform operators have **no** implicit access to tenant data; only break-glass (read-only, dual approval, audited in the tenant's chain).
@@ -48,7 +50,6 @@ Decision record: [ADR-0006 SQL-first migrations and database-enforced security](
 - The audit trail is tamper-evident, not tamper-proof against a database superuser; production should additionally ship audit events to WORM storage (backlog).
 
 ## Known gaps / follow-ups
-- e2e login journey in CI: being fixed (see run status).
 - Site-scoped role assignments are stored but not yet used in decisions (needs site-bound resources, M3+).
 - Plans/bundles and usage meters: M9 (commercial packaging) and M4 (AI metering).
 - Logout ends the app session but not always the Keycloak SSO session from the SPA.
