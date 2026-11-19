@@ -44,12 +44,9 @@ public sealed class TestHost : WebApplicationFactory<Program>
         builder.ConfigureTestServices(services =>
         {
             services.AddAuthentication().AddScheme<AuthenticationSchemeOptions, HeaderAuthHandler>(HeaderAuthHandler.SchemeName, _ => { });
-            services.PostConfigure<AuthenticationOptions>(o =>
-            {
-                o.DefaultScheme = HeaderAuthHandler.SchemeName;
-                o.DefaultAuthenticateScheme = HeaderAuthHandler.SchemeName;
-                o.DefaultChallengeScheme = HeaderAuthHandler.SchemeName;
-            });
+            // Only authentication is replaced; challenge/forbid keep the production behaviour (cookie
+            // handler returning 401/403 for APIs), so tests exercise the real API responses.
+            services.PostConfigure<AuthenticationOptions>(o => o.DefaultAuthenticateScheme = HeaderAuthHandler.SchemeName);
         });
     }
 

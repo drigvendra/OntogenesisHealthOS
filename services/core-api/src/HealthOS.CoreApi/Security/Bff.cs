@@ -42,8 +42,10 @@ public static class BffAuthentication
 
         services.AddAuthentication(o =>
             {
+                // Challenges go to the cookie handler, which returns 401/403 for APIs. The OIDC redirect is
+                // only started explicitly from /bff/login, so a fetch() never gets bounced to the IdP.
                 o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                o.DefaultChallengeScheme = OidcScheme;
+                o.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
             .AddCookie(o =>
             {

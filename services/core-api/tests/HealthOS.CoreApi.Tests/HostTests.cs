@@ -64,6 +64,14 @@ public sealed class HostTests : IClassFixture<TestHost>
     }
 
     [Fact]
+    public async Task Api_never_redirects_anonymous_callers_to_the_identity_provider()
+    {
+        var r = await _host.ApiClient().GetAsync(new Uri("/api/core/identity/me", UriKind.Relative), TestContext.Current.CancellationToken);
+        Assert.Null(r.Headers.Location);
+        Assert.NotEqual(HttpStatusCode.Redirect, r.StatusCode);
+    }
+
+    [Fact]
     public async Task Me_returns_the_authenticated_identity()
     {
         var me = await _host.ApiClient(user: "synthetic-user-1", amr: "pwd,otp")
