@@ -1,6 +1,7 @@
 packages:
   - "apps/*"
   - "packages/ui-kit"
+  - "tests/e2e"
 
 # Every ignored advisory must have an entry in docs/security/dependency-exceptions.md
 # with justification, owner and review date.

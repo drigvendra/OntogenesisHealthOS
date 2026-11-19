@@ -68,6 +68,12 @@ public static class BffAuthentication
                 o.ClientSecret = s.ClientSecret;
                 o.RequireHttpsMetadata = s.RequireHttpsMetadata;
                 o.ResponseType = "code";
+                // Authorization response as a top-level GET redirect: works with SameSite=Lax cookies
+                // (form_post would need SameSite=None, which browsers reject without HTTPS). The code is
+                // single-use and bound to the PKCE verifier.
+                o.ResponseMode = "query";
+                o.CorrelationCookie.SameSite = SameSiteMode.Lax;
+                o.NonceCookie.SameSite = SameSiteMode.Lax;
                 o.UsePkce = true;
                 o.SaveTokens = true;
                 o.MapInboundClaims = false;

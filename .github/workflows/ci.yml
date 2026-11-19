@@ -118,3 +118,90 @@ jobs:
         with:
           name: sbom
           path: sbom.cdx.json
+
+  # Full local stack (deploy/local/compose.yaml) + real browser login through Keycloak and the BFF.
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [dotnet, web]
+    env:
+      CORE_API_DLL: services/core-api/src/HealthOS.CoreApi/bin/Release/net10.0/HealthOS.CoreApi.dll
+      COMPOSE: docker compose --env-file .env -f deploy/local/compose.yaml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Generate throwaway secrets (.env)
+        run: |
+          r() { openssl rand -hex 24; }
+          {
+            echo "HOS_PG_SUPERUSER_PASSWORD=$(r)"
+            echo "HOS_MIGRATOR_PASSWORD=$(r)"
+            echo "HOS_APP_PASSWORD=$(r)"
+            echo "HOS_KEYCLOAK_ADMIN_PASSWORD=$(r)"
+            echo "HOS_BFF_CLIENT_SECRET=$(r)"
+            echo "HOS_DEV_USER_PASSWORD=Dev-$(r)"
+          } > .env
+          while IFS='=' read -r _ v; do echo "::add-mask::$v"; done < .env
+
+      - name: Start stack (postgres, keycloak, jaeger, mailpit)
+        run: $COMPOSE up -d --wait --wait-timeout 300
+
+      - name: Build core-api
+        run: dotnet build services/core-api/src/HealthOS.CoreApi -c Release
+
+      - name: Database bootstrap and migrate (run twice to prove idempotency)
+        run: |
+          set -a; . ./.env; set +a
+          PG="Host=localhost;Port=5433"
+          export Database__AdminConnectionString="$PG;Database=postgres;Username=hos_superuser;Password=$HOS_PG_SUPERUSER_PASSWORD"
+          export Database__MigratorPassword="$HOS_MIGRATOR_PASSWORD" Database__AppPassword="$HOS_APP_PASSWORD"
+          export Database__MigratorConnectionString="$PG;Database=healthos;Username=hos_migrator;Password=$HOS_MIGRATOR_PASSWORD"
+          for i in 1 2; do dotnet $CORE_API_DLL db bootstrap && dotnet $CORE_API_DLL db migrate; done
+
+      - name: Start core-api and admin-web
+        run: |
+          set -a; . ./.env; set +a
+          export ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5080
+          export Database__ConnectionString="Host=localhost;Port=5433;Database=healthos;Username=hos_app;Password=$HOS_APP_PASSWORD"
+          export Authentication__Oidc__ClientSecret="$HOS_BFF_CLIENT_SECRET"
+          nohup dotnet $CORE_API_DLL > core-api.log 2>&1 &
+          nohup pnpm --filter @healthos/admin-web dev > admin-web.log 2>&1 &
+          for i in $(seq 60); do curl -fs http://localhost:5080/health/ready >/dev/null && break; sleep 2; done
+          for i in $(seq 60); do curl -fs http://localhost:5173/ >/dev/null && break; sleep 2; done
+          curl -fsS http://localhost:5080/health/ready && echo
+
+      - run: pnpm --filter @healthos/e2e exec playwright install --with-deps chromium
+
+      - name: Playwright login journey
+        run: |
+          set -a; . ./.env; set +a
+          E2E_PASSWORD="$HOS_DEV_USER_PASSWORD" pnpm --filter @healthos/e2e e2e
+
+      - name: Verify user was provisioned in core_identity
+        run: |
+          n=$($COMPOSE exec -T postgres psql -U hos_superuser -d healthos -tAc "select count(*) from core_identity.user_account")
+          echo "::notice title=E2E provisioning::core_identity.user_account rows = $n"
+          test "$n" = "1"
+
+      - name: Diagnostics
+        if: failure()
+        run: |
+          echo "--- core-api"; tail -n 80 core-api.log || true
+          echo "--- admin-web"; tail -n 40 admin-web.log || true
+          echo "--- compose ps"; $COMPOSE ps || true
+          echo "--- keycloak"; $COMPOSE logs --tail 60 keycloak || true
+          grep -hE 'fail|error|Exception' core-api.log | head -5 | sed 's/^/::error title=core-api::/' || true
+          $COMPOSE ps --format '{{.Service}} {{.State}} {{.Health}}' | sed 's/^/::notice title=compose::/' || true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: tests/e2e/playwright-report

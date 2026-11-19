@@ -35,8 +35,15 @@ services:
     volumes:
       - ./keycloak:/opt/keycloak/data/import:ro
     healthcheck:
-      # The Keycloak image has no curl; use bash's /dev/tcp against the management port.
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3"]
+      # The Keycloak image has no curl/grep; use only bash builtins against the management port.
+      test:
+        - CMD
+        - bash
+        - -c
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          while IFS= read -r line <&3; do [[ "$$line" == *'"UP"'* ]] && exit 0; done; exit 1
       interval: 10s
       timeout: 5s
       retries: 30
