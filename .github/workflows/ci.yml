@@ -198,7 +198,8 @@ jobs:
           echo "--- admin-web"; tail -n 40 admin-web.log || true
           echo "--- compose ps"; $COMPOSE ps || true
           echo "--- keycloak"; $COMPOSE logs --tail 60 keycloak || true
-          grep -hE 'fail|error|Exception' core-api.log | head -5 | sed 's/^/::error title=core-api::/' || true
+          grep -hiE '"LogLevel":"(Error|Critical|Warning)"|exception' core-api.log | head -8 | cut -c1-900 | sed 's/^/::error title=core-api::/' || true
+          $COMPOSE logs --no-color keycloak 2>/dev/null | grep -iE 'error|warn|invalid' | tail -8 | cut -c1-500 | sed 's/^/::warning title=keycloak::/' || true
           $COMPOSE ps --format '{{.Service}} {{.State}} {{.Health}}' | sed 's/^/::notice title=compose::/' || true
       - uses: actions/upload-artifact@v4
         if: failure()

@@ -22,7 +22,14 @@ test("synthetic user signs in through Keycloak via the BFF", async ({ page }) =>
   await page.locator("#password").fill(PASSWORD);
   await page.locator("#kc-login").click();
 
-  await expect(page.getByRole("heading", { name: "Welcome, Synthetic User" })).toBeVisible();
+  // On failure, report where the browser ended up and what it shows (Keycloak error, callback error, ...).
+  try {
+    await page.waitForURL(/localhost:5173\/(?!bff\/)/, { timeout: 20_000 });
+    await expect(page.getByRole("heading", { name: "Welcome, Synthetic User" })).toBeVisible({ timeout: 15_000 });
+  } catch (e) {
+    const text = (await page.locator("body").innerText().catch(() => "")).replace(/\s+/g, " ").slice(0, 400);
+    throw new Error(`Login did not complete. URL: ${page.url()} | Page: ${text} | ${(e as Error).message.split("\n")[0]}`);
+  }
   await expect(page.getByText("Multi-factor authentication not used")).toBeVisible();
 
   // Tokens never reach the browser: the session cookie is HttpOnly and invisible to page scripts.
