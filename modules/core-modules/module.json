@@ -1,0 +1,27 @@
+{
+  "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
+  "id": "core.modules",
+  "kind": "platform",
+  "version": "0.1.0",
+  "displayName": "Module management",
+  "requiresCore": "^0.1.0",
+  "dependencies": [
+    { "id": "core.audit", "version": "^0.1.0" },
+    { "id": "core.licensing", "version": "^0.1.0" }
+  ],
+  "capabilities": ["tenant-module-activation"],
+  "permissions": [
+    { "code": "core.modules.status.read", "description": "View installed modules and their status in the tenant" },
+    { "code": "core.modules.activation.manage", "description": "Enable or disable modules for the tenant", "requiresMfa": true },
+    { "code": "core.modules.tenant-activation.manage", "description": "Enable or disable modules for a tenant during onboarding", "scope": "platform" }
+  ],
+  "contracts": {
+    "provides": {
+      "api": [{ "name": "core-modules-api", "version": "0.1.0" }],
+      "events": []
+    }
+  },
+  "database": { "schema": "core_modules" },
+  "dataRetention": { "defaultPolicy": "tenant-configuration", "destructiveUninstall": false },
+  "healthChecks": []
+}

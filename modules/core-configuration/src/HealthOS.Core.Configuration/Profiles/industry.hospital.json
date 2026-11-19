@@ -1,0 +1,13 @@
+{
+    "scope":  "Industry",
+    "entries":  [
+                    {
+                        "key":  "core.identity.session.idleTimeoutMinutes",
+                        "value":  15,
+                        "max":  60
+                    }
+                ],
+    "key":  "hospital",
+    "displayName":  "Hospital",
+    "note":  "Example values for development and demos. Regulatory values must be confirmed by qualified counsel before use (docs/compliance/regulatory-scope.md)."
+}

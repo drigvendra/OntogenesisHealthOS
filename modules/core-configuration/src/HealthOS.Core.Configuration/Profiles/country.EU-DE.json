@@ -1,0 +1,12 @@
+{
+    "scope":  "Country",
+    "entries":  [
+                    {
+                        "key":  "core.tenancy.locale.language",
+                        "value":  "de"
+                    }
+                ],
+    "key":  "EU-DE",
+    "displayName":  "Germany (EU)",
+    "note":  "Example values for development and demos. Regulatory values must be confirmed by qualified counsel before use (docs/compliance/regulatory-scope.md)."
+}

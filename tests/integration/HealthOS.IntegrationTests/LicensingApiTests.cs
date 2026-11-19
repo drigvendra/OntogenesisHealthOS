@@ -53,9 +53,19 @@ public sealed class LicensingApiTests(PostgresFixture db) : IAsyncLifetime
         return (op, tenant.Id, admin);
     }
 
-    private Task<HttpResponseMessage> Grant(Guid op, Guid tenant, DateTimeOffset? validFrom = null, DateTimeOffset? validTo = null, int? graceDays = null) =>
-        _api.As(op).PutAsJsonAsync($"/api/platform/tenants/{tenant}/entitlements",
+    /// <summary>Grants the licence and enables the module (both are needed for activation).</summary>
+    private async Task<HttpResponseMessage> Grant(Guid op, Guid tenant, DateTimeOffset? validFrom = null, DateTimeOffset? validTo = null, int? graceDays = null)
+    {
+        var r = await _api.As(op).PutAsJsonAsync($"/api/platform/tenants/{tenant}/entitlements",
             new { feature = TestLicensedModule.Feature, validFrom, validTo, graceDays }, Ct);
+        if (r.IsSuccessStatusCode)
+        {
+            var enable = await _api.As(op).PostAsJsonAsync($"/api/platform/tenants/{tenant}/modules/test.licensed/enable", new { includeDependencies = false }, Ct);
+            Assert.Equal(HttpStatusCode.OK, enable.StatusCode);
+        }
+
+        return r;
+    }
 
     private async Task<List<NavigationItem>> Navigation(Guid user, Guid tenant) =>
         await (await _api.As(user, tenant).GetAsync("/api/core/navigation", Ct)).Read<List<NavigationItem>>();

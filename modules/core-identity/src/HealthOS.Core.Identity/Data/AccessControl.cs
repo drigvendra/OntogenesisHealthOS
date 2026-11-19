@@ -5,6 +5,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HealthOS.Core.Identity.Data;
 
+/// <summary>Role codes of a user in the active tenant (row-level security limits to that tenant).</summary>
+internal sealed class UserRoles(IdentityDbContext db) : HealthOS.Modules.Sdk.Configuration.IUserRoles
+{
+    public async Task<IReadOnlyList<string>> GetRoleCodesAsync(Guid userId, CancellationToken cancellationToken) =>
+        await (from a in db.RoleAssignments.AsNoTracking()
+               join r in db.Roles.AsNoTracking() on a.RoleId equals r.Id
+               where a.UserId == userId && a.SiteId == null
+               orderby r.IsSystem descending, r.Code
+               select r.Code).Distinct().ToListAsync(cancellationToken).ConfigureAwait(false);
+}
+
 /// <summary>Used by the host's operator CLI (database access required; never exposed over HTTP).</summary>
 public interface IOperatorAdministration
 {

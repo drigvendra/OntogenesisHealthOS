@@ -4,6 +4,10 @@
   <Folder Name="/modules/core-audit/src/">
     <Project Path="modules/core-audit/src/HealthOS.Core.Audit/HealthOS.Core.Audit.csproj" />
   </Folder>
+  <Folder Name="/modules/core-configuration/" />
+  <Folder Name="/modules/core-configuration/src/">
+    <Project Path="modules/core-configuration/src/HealthOS.Core.Configuration/HealthOS.Core.Configuration.csproj" />
+  </Folder>
   <Folder Name="/modules/core-identity/" />
   <Folder Name="/modules/core-identity/src/">
     <Project Path="modules/core-identity/src/HealthOS.Core.Identity.Contracts/HealthOS.Core.Identity.Contracts.csproj" />
@@ -13,6 +17,10 @@
   <Folder Name="/modules/core-licensing/src/">
     <Project Path="modules/core-licensing/src/HealthOS.Core.Licensing.Contracts/HealthOS.Core.Licensing.Contracts.csproj" />
     <Project Path="modules/core-licensing/src/HealthOS.Core.Licensing/HealthOS.Core.Licensing.csproj" />
+  </Folder>
+  <Folder Name="/modules/core-modules/" />
+  <Folder Name="/modules/core-modules/src/">
+    <Project Path="modules/core-modules/src/HealthOS.Core.Modules/HealthOS.Core.Modules.csproj" />
   </Folder>
   <Folder Name="/modules/core-tenancy/" />
   <Folder Name="/modules/core-tenancy/src/">

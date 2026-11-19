@@ -22,6 +22,8 @@ public static class InstalledModules
         new HealthOS.Core.Audit.CoreAuditModule(),
         new CoreTenancyModule(),
         new HealthOS.Core.Licensing.CoreLicensingModule(),
+        new HealthOS.Core.Modules.CoreModulesModule(),
+        new HealthOS.Core.Configuration.CoreConfigurationModule(),
         new CoreIdentityModule(),
     ];
 }

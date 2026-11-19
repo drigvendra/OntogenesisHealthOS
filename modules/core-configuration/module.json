@@ -1,0 +1,35 @@
+{
+  "$schema": "../../packages/module-sdk/schema/module-manifest.v1.schema.json",
+  "id": "core.configuration",
+  "kind": "platform",
+  "version": "0.1.0",
+  "displayName": "Configuration Studio",
+  "requiresCore": "^0.1.0",
+  "dependencies": [{ "id": "core.audit", "version": "^0.1.0" }],
+  "capabilities": ["settings", "profiles", "drafts", "snapshots", "rollback"],
+  "permissions": [
+    { "code": "core.configuration.settings.read", "description": "View configuration, drafts and history" },
+    { "code": "core.configuration.drafts.edit", "description": "Create configuration drafts" },
+    { "code": "core.configuration.drafts.approve", "description": "Approve configuration drafts", "requiresMfa": true },
+    { "code": "core.configuration.snapshots.publish", "description": "Publish approved drafts and roll back", "requiresMfa": true },
+    { "code": "core.configuration.profile.manage", "description": "Set a tenant's country, industry and specialty profile", "scope": "platform" }
+  ],
+  "settings": [
+    {
+      "key": "core.configuration.approval.fourEyes",
+      "type": "Boolean",
+      "description": "Configuration drafts must be approved by someone other than their author.",
+      "default": false,
+      "allowedScopes": ["Global", "Country", "Industry", "Organization"]
+    }
+  ],
+  "contracts": {
+    "provides": {
+      "api": [{ "name": "core-configuration-api", "version": "0.1.0" }],
+      "events": []
+    }
+  },
+  "database": { "schema": "core_configuration" },
+  "dataRetention": { "defaultPolicy": "tenant-configuration", "destructiveUninstall": false },
+  "healthChecks": []
+}

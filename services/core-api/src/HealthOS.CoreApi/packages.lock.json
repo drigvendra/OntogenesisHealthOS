@@ -192,6 +192,13 @@
           "HealthOS.Platform.Data": "[1.0.0, )"
         }
       },
+      "healthos.core.configuration": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Modules.Sdk": "[1.0.0, )",
+          "HealthOS.Platform.Data": "[1.0.0, )"
+        }
+      },
       "healthos.core.identity": {
         "type": "Project",
         "dependencies": {
@@ -214,6 +221,14 @@
       },
       "healthos.core.licensing.contracts": {
         "type": "Project"
+      },
+      "healthos.core.modules": {
+        "type": "Project",
+        "dependencies": {
+          "HealthOS.Core.Licensing.Contracts": "[1.0.0, )",
+          "HealthOS.Modules.Sdk": "[1.0.0, )",
+          "HealthOS.Platform.Data": "[1.0.0, )"
+        }
       },
       "healthos.core.tenancy": {
         "type": "Project",

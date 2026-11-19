@@ -1,0 +1,17 @@
+{
+    "scope":  "Industry",
+    "entries":  [
+                    {
+                        "key":  "core.configuration.approval.fourEyes",
+                        "locked":  true,
+                        "value":  true
+                    },
+                    {
+                        "key":  "core.audit.retention.years",
+                        "min":  10
+                    }
+                ],
+    "key":  "pharma-qa",
+    "displayName":  "Pharma / biotech quality",
+    "note":  "Example values for development and demos. Regulatory values must be confirmed by qualified counsel before use (docs/compliance/regulatory-scope.md)."
+}

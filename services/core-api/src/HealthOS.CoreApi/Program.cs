@@ -111,7 +111,7 @@ app.Use(async (ctx, next) =>
 app.UseMiddleware<CsrfHeaderMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<RequestContextMiddleware>();
-app.UseMiddleware<EntitlementGateMiddleware>();
+app.UseMiddleware<ModuleGateMiddleware>();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false, ResponseWriter = WriteHealth })

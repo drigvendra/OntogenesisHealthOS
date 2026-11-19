@@ -9,6 +9,29 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HealthOS.IntegrationTests;
 
+/// <summary>A pack on top of <see cref="TestLicensedModule"/>, used to prove dependency rules.</summary>
+public sealed class TestAddonModule : IHealthOsModule
+{
+    public ModuleManifest Manifest { get; } = new()
+    {
+        Id = "test.addon",
+        Kind = ModuleKind.Pack,
+        Version = "0.1.0",
+        DisplayName = "Test add-on pack",
+        RequiresCore = "^0.1.0",
+        Dependencies = [new ModuleDependency("test.licensed", "^0.1.0")],
+        License = new ModuleLicense("TESTPROD", "addon"),
+        Permissions = [new PermissionDeclaration("test.addon.read", "Read add-on data")],
+    };
+
+    public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+    {
+    }
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) =>
+        endpoints.MapGet("/api/test/addon/ping", () => TypedResults.Ok("addon")).RequirePermission("test.addon.read");
+}
+
 /// <summary>A minimal licensed product module used only to prove the entitlement gate.</summary>
 public sealed class TestLicensedModule : IHealthOsModule
 {

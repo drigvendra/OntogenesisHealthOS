@@ -1,0 +1,9 @@
+{
+    "scope":  "Specialty",
+    "entries":  [
+
+                ],
+    "key":  "vision",
+    "displayName":  "Ophthalmology / vision",
+    "note":  "Example values for development and demos. Regulatory values must be confirmed by qualified counsel before use (docs/compliance/regulatory-scope.md)."
+}

@@ -16,6 +16,7 @@
     { "code": "core.identity.break-glass.request", "description": "Request time-boxed read-only access to a tenant", "scope": "platform" },
     { "code": "core.identity.break-glass.approve", "description": "Approve another operator's break-glass request", "scope": "platform" }
   ],
+  "settings": [{ "key": "core.identity.session.idleTimeoutMinutes", "type": "Integer", "description": "Sign users out after this many minutes without activity.", "default": 30, "min": 5, "max": 480, "unit": "minutes", "allowedScopes": ["Global", "Industry", "Organization", "Role"], "merge": "MostRestrictive" }],
   "contracts": {
     "provides": {
       "api": [{ "name": "core-identity-api", "version": "0.2.0" }],

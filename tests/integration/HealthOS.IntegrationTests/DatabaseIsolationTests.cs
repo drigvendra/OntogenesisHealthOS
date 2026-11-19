@@ -73,6 +73,8 @@ public sealed class DatabaseIsolationTests(PostgresFixture db)
                      scope.ServiceProvider.GetRequiredService<TenancyDbContext>(),
                      scope.ServiceProvider.GetRequiredService<HealthOS.Core.Audit.AuditDbContext>(),
                      scope.ServiceProvider.GetRequiredService<HealthOS.Core.Licensing.LicensingDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<HealthOS.Core.Modules.ModulesDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<HealthOS.Core.Configuration.ConfigurationDbContext>(),
                  })
         {
             foreach (var entity in ctx.Model.GetEntityTypes())

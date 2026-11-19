@@ -1,0 +1,9 @@
+{
+    "scope":  "Industry",
+    "entries":  [
+
+                ],
+    "key":  "medtech-service",
+    "displayName":  "Medical equipment service",
+    "note":  "Example values for development and demos. Regulatory values must be confirmed by qualified counsel before use (docs/compliance/regulatory-scope.md)."
+}

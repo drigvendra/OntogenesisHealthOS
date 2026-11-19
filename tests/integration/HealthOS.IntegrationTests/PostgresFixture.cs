@@ -38,7 +38,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         new NpgsqlConnectionStringBuilder(AdminConnectionString) { Database = DatabaseName }.ConnectionString;
 
     public static IReadOnlyList<IHealthOsModule> Modules { get; } =
-        [new HealthOS.Core.Audit.CoreAuditModule(), new CoreTenancyModule(), new HealthOS.Core.Licensing.CoreLicensingModule(), new CoreIdentityModule()];
+        [new HealthOS.Core.Audit.CoreAuditModule(), new CoreTenancyModule(), new HealthOS.Core.Licensing.CoreLicensingModule(), new HealthOS.Core.Modules.CoreModulesModule(), new HealthOS.Core.Configuration.CoreConfigurationModule(), new CoreIdentityModule()];
 
     private string As(string user, string password) =>
         new NpgsqlConnectionStringBuilder(AdminConnectionString)
@@ -62,6 +62,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton(new PermissionCatalog(Modules.Select(m => m.Manifest)));
+        services.AddSingleton<IReadOnlyList<IHealthOsModule>>(Modules);
         foreach (var m in Modules)
         {
             m.ConfigureServices(services, config);

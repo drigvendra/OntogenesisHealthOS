@@ -13,6 +13,7 @@
     { "code": "core.tenancy.tenants.read", "description": "List tenants in this deployment cell", "scope": "platform" },
     { "code": "core.tenancy.tenants.manage", "description": "Create and suspend tenants", "scope": "platform" }
   ],
+  "settings": [{ "key": "core.tenancy.locale.language", "type": "Enum", "description": "Default user-interface language.", "default": "en", "options": ["en", "hi", "de", "fr"], "allowedScopes": ["Global", "Country", "Organization", "Site", "User"], "merge": "FirstRole" }],
   "contracts": {
     "provides": {
       "api": [{ "name": "core-tenancy-api", "version": "0.1.0" }],

@@ -24,6 +24,9 @@ public sealed record ModuleManifest
     public ModuleUi Ui { get; init; } = new();
     public ModuleDataRetention DataRetention { get; init; } = new();
     public IReadOnlyList<string> HealthChecks { get; init; } = [];
+
+    /// <summary>Settings this module reads through the Configuration Studio (spec §4).</summary>
+    public IReadOnlyList<HealthOS.Modules.Sdk.Configuration.SettingDefinition> Settings { get; init; } = [];
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<ModuleKind>))]

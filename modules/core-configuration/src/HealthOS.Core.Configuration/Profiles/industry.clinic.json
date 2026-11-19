@@ -1,0 +1,12 @@
+{
+    "scope":  "Industry",
+    "entries":  [
+                    {
+                        "key":  "core.identity.session.idleTimeoutMinutes",
+                        "value":  30
+                    }
+                ],
+    "key":  "clinic",
+    "displayName":  "Outpatient clinic",
+    "note":  "Example values for development and demos. Regulatory values must be confirmed by qualified counsel before use (docs/compliance/regulatory-scope.md)."
+}

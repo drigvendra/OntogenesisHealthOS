@@ -117,6 +117,35 @@ public static partial class ManifestValidator
             Add("INVALID_SCHEMA", $"Database schema '{db.Schema}' is invalid or reserved.");
         }
 
+        var settingKeys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var s in m.Settings)
+        {
+            if (!s.Key.StartsWith(namespacePrefix, StringComparison.Ordinal) || s.Key.Split('.').Length < 3)
+            {
+                Add("SETTING_NAMESPACE", $"Setting '{s.Key}' must start with '{namespacePrefix}' and have at least three segments.");
+            }
+
+            if (!settingKeys.Add(s.Key))
+            {
+                Add("DUPLICATE_SETTING", $"Setting '{s.Key}' is declared more than once.");
+            }
+
+            if (s.AllowedScopes.Count == 0)
+            {
+                Add("SETTING_SCOPES", $"Setting '{s.Key}' must allow at least one scope.");
+            }
+
+            if (s.Type == HealthOS.Modules.Sdk.Configuration.SettingType.Enum && s.Options.Count == 0)
+            {
+                Add("SETTING_OPTIONS", $"Enum setting '{s.Key}' needs options.");
+            }
+
+            foreach (var problem in HealthOS.Modules.Sdk.Configuration.ConfigResolver.ValidateValue(s, s.Default))
+            {
+                Add("SETTING_DEFAULT", $"Default of '{s.Key}' {problem}.");
+            }
+        }
+
         if (m.DataRetention.DestructiveUninstall)
         {
             Add("DESTRUCTIVE_UNINSTALL", "Destructive uninstall is not permitted by default (spec §3.1).");

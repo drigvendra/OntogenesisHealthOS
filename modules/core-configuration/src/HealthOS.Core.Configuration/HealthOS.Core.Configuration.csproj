@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>core.configuration: Configuration Studio (settings, profiles, drafts, snapshots).</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HealthOS.IntegrationTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\module.json" LogicalName="module.json" />
+    <EmbeddedResource Include="Migrations\*.sql" />
+    <EmbeddedResource Include="Profiles\*.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\packages\module-sdk\src\HealthOS.Modules.Sdk\HealthOS.Modules.Sdk.csproj" />
+    <ProjectReference Include="..\..\..\..\packages\platform-data\src\HealthOS.Platform.Data\HealthOS.Platform.Data.csproj" />
+  </ItemGroup>
+
+</Project>
